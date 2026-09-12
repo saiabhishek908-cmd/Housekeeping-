@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111111">
+<link rel="manifest" href="manifest.json">
+<title>HouseKeep</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#17191c;font-family:Arial,sans-serif}
+.app{max-width:480px;margin:auto;min-height:100vh;background:#fff;padding:24px 20px 32px}
+h1{font-size:32px;margin:5px 0}.tag{color:#666;margin-bottom:25px}
+.card{border:1px solid #e1e3e7;border-radius:16px;padding:18px;margin:12px 0}
+label{display:block;font-size:13px;font-weight:bold;color:#555;margin-bottom:9px}
+input,select{width:100%;padding:14px;border:1px solid #d6d8dc;border-radius:10px;font-size:16px;background:#fff}
+.price{font-size:27px;font-weight:bold}.small{font-size:12px;color:#777;margin-top:7px}
+button{width:100%;padding:16px;border:0;border-radius:12px;background:#111;color:#fff;font-size:17px;font-weight:bold}
+#status{display:none;margin-top:16px;padding:15px;border-radius:12px;background:#eef7ee}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>HouseKeep</h1>
+<div class="tag">Book a housekeeper when you need one.</div>
+
+<div class="card"><label>YOUR LOCATION</label><input id="location" placeholder="Enter your location"></div>
+<div class="card"><label>SERVICE</label><select id="service">
+<option value="250">Regular cleaning</option><option value="350">Deep cleaning</option>
+<option value="300">Kitchen cleaning</option><option value="300">Bathroom cleaning</option>
+</select></div>
+<div class="card"><label>DURATION</label><select id="duration">
+<option value="1">1 hour</option><option value="2" selected>2 hours</option>
+<option value="3">3 hours</option><option value="4">4 hours</option>
+</select></div>
+<div class="card"><label>HOUSEKEEPERS</label><select id="workers">
+<option value="1" selected>1 housekeeper</option><option value="2">2 housekeepers</option><option value="3">3 housekeepers</option>
+</select></div>
+<div class="card"><label>ESTIMATED PRICE</label><div class="price" id="price">₹500</div><div class="small">Demo pricing — not real booking yet.</div></div>
+
+<button id="book">Book a Housekeeper</button>
+<div id="status"></div>
+</div>
+
+<script>
+function updatePrice(){
+ const base=+service.value,d=+duration.value,w=+workers.value;
+ price.textContent='₹'+(base*d/2*w);
+}
+document.querySelectorAll('select').forEach(e=>e.onchange=updatePrice);
+book.onclick=()=>{
+ status.style.display='block';
+ status.textContent=location.value.trim() ?
+ 'Booking request created. Worker matching will be connected in a future version.' :
+ 'Please enter your location first.';
+};
+updatePrice();
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
