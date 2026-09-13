@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HouseKeep Worker</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: auto;
+      background: white;
+      min-height: 100vh;
+      padding: 25px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    .booking {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 20px;
+    }
+
+    .status {
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .accept {
+      background: #111;
+      color: white;
+    }
+
+    .reject {
+      background: #eee;
+      color: #111;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <h1>HouseKeep Worker</h1>
+  <p>New cleaning request</p>
+
+  <div class="booking">
+
+    <h2>New Booking</h2>
+
+    <p><strong>Location:</strong> Hyderabad</p>
+    <p><strong>Service:</strong> Regular cleaning</p>
+    <p><strong>Duration:</strong> 2 hours</p>
+    <p><strong>Housekeepers:</strong> 1</p>
+    <p><strong>Payout:</strong> ₹600</p>
+
+    <button class="accept" onclick="acceptJob()">
+      Accept Job
+    </button>
+
+    <button class="reject" onclick="rejectJob()">
+      Reject
+    </button>
+
+    <div id="status" class="status"></div>
+
+  </div>
+
+</div>
+
+<script>
+
+function acceptJob() {
+  document.getElementById("status").innerText =
+    "Job accepted! Navigate to the customer location.";
+}
+
+function rejectJob() {
+  document.getElementById("status").innerText =
+    "Job rejected.";
+}
+
+</script>
+
+</body>
+</html>
