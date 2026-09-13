@@ -135,8 +135,11 @@ button {
 Book a Housekeeper
 </button>
 
-<div id="result"></div>
 
+<div id="myBooking" class="box" style="display:none;">
+  <h2>My Booking</h2>
+  <p id="bookingDetails"></p>
+</div>
 </div>
 
 <script>
@@ -144,9 +147,15 @@ Book a Housekeeper
 var hours = document.getElementById("hours");
 var workers = document.getElementById("workers");
 var price = document.getElementById("price");
-var bookButton = document.getElementById("bookButton");
-var result = document.getElementById("result");
 
+ var result = document.getElementById("result");
+var myBooking = document.getElementById("myBooking");
+var bookingDetails = document.getElementById("bookingDetails");
+var bookButton = document.getElementById("bookButton"); var bookButton = document.getElementById("bookButton");
+  
+var result = document.getElementById("result");
+var myBooking = document.getElementById("myBooking");
+var bookingDetails = document.getElementById("bookingDetails");
 function updatePrice() {
 
   var selectedHours = Number(hours.value);
@@ -185,8 +194,39 @@ result.style.display = "block";
     "Price: " + price.innerText;
 });
 
+var savedBooking = localStorage.getItem("housekeepBooking");
 
-updatePrice();
+if (savedBooking) {
+  var booking = JSON.parse(savedBooking);
+
+  myBooking.style.display = "block";
+
+  bookingDetails.innerText =
+    "Booking ID: " + booking.id + "\n" +
+    "Location: " + booking.location + "\n" +
+    "Service: " + booking.service + "\n" +
+    "Duration: " + booking.hours + " hour(s)\n" +
+    "Housekeepers: " + booking.workers + "\n" +
+    "Price: " + booking.price + "\n" +
+    "Status: Confirmed";
+}
+
+if (savedBooking) {
+  var booking = JSON.parse(savedBooking);
+
+  myBooking.style.display = "block";
+
+  bookingDetails.innerText =
+    "Booking ID: " + booking.id + "\n" +
+    "Location: " + booking.location + "\n" +
+    "Service: " + booking.service + "\n" +
+    "Duration: " + booking.hours + " hour(s)\n" +
+    "Housekeepers: " + booking.workers + "\n" +
+    "Price: " + booking.price + "\n" +
+    "Status: Confirmed";
+}
+
+updatePrice();  
 
 </script>
 
