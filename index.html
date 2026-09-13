@@ -164,7 +164,18 @@ workers.addEventListener("change", updatePrice);
 bookButton.addEventListener("click", function() {
   var bookingId = "HK" + Date.now();
 
-  result.style.display = "block";
+var booking = {
+  id: bookingId,
+  location: document.getElementById("location").value,
+  service: document.getElementById("service").value,
+  hours: hours.value,
+  workers: workers.value,
+  price: price.innerText
+};
+
+localStorage.setItem("housekeepBooking", JSON.stringify(booking));
+
+result.style.display = "block";
   result.innerText =
     "Booking confirmed!\n\n" +
     "Booking ID: " + bookingId + "\n" +
