@@ -1,26 +1,90 @@
 <!doctype html>
-
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HouseKeep</title>
+
 <style>
-body{font-family:Arial;margin:0;background:#f5f5f5}
-.app{max-width:480px;margin:auto;background:white;min-height:100vh;padding:25px}
-h1{font-size:32px}
-p{color:#666}
-.box{border:1px solid #ddd;border-radius:12px;padding:15px;margin:12px 0}
-label{display:block;font-weight:bold;margin-bottom:8px}
-input,select{width:100%;padding:13px;border:1px solid #ccc;border-radius:8px;font-size:16px;box-sizing:border-box}
-button{width:100%;padding:15px;background:#111;color:white;border:0;border-radius:10px;font-size:17px;font-weight:bold;margin-top:10px}
-#result{display:none;margin-top:15px;padding:15px;background:#e9f7e9;border-radius:10px}
+body{
+  font-family:Arial;
+  margin:0;
+  background:#f5f5f5;
+}
+
+.app{
+  max-width:480px;
+  margin:auto;
+  background:white;
+  min-height:100vh;
+  padding:25px;
+  box-sizing:border-box;
+}
+
+h1{
+  font-size:32px;
+}
+
+p{
+  color:#666;
+}
+
+.box{
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:15px;
+  margin:12px 0;
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+
+input,select{
+  width:100%;
+  padding:13px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:16px;
+  box-sizing:border-box;
+}
+
+button{
+  width:100%;
+  padding:15px;
+  background:#111;
+  color:white;
+  border:0;
+  border-radius:10px;
+  font-size:17px;
+  font-weight:bold;
+  margin-top:10px;
+}
+
+#result{
+  display:none;
+  margin-top:15px;
+  padding:15px;
+  background:#e9f7e9;
+  border-radius:10px;
+}
 </style>
-</head><body>
-<div class="app"><h1>HouseKeep</h1>
-<p>Book a housekeeper when you need one.</p><div class="box">
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>HouseKeep</h1>
+<p>Book a housekeeper when you need one.</p>
+
+<div class="box">
 <label>Location</label>
 <input id="location" placeholder="Enter your location">
-</div><div class="box">
+</div>
+
+<div class="box">
 <label>Service</label>
 <select id="service">
 <option>Regular cleaning</option>
@@ -28,7 +92,9 @@ button{width:100%;padding:15px;background:#111;color:white;border:0;border-radiu
 <option>Kitchen cleaning</option>
 <option>Bathroom cleaning</option>
 </select>
-</div><div class="box">
+</div>
+
+<div class="box">
 <label>Duration</label>
 <select id="hours">
 <option value="1">1 hour</option>
@@ -36,54 +102,81 @@ button{width:100%;padding:15px;background:#111;color:white;border:0;border-radiu
 <option value="3">3 hours</option>
 <option value="4">4 hours</option>
 </select>
-</div><div class="box">
+</div>
+
+<div class="box">
 <label>Housekeepers</label>
 <select id="workers">
 <option value="1">1 housekeeper</option>
 <option value="2">2 housekeepers</option>
 <option value="3">3 housekeepers</option>
 </select>
-</div><div class="box">
+</div>
+
+<div class="box">
 <label>Estimated Price</label>
 <h2 id="price">₹500</h2>
-</div><button onclick="book()">Book a Housekeeper</button>
+</div>
 
-<div id="result"></div></div><script>
+<button id="bookButton">Book a Housekeeper</button>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
 function updatePrice(){
-var hours=document.getElementById("hours").value;
-var workers=document.getElementById("workers").value;
-var price=500*hours*workers;
-document.getElementById("price").innerText="₹"+price;
+
+  var hours = Number(document.getElementById("hours").value);
+  var workers = Number(document.getElementById("workers").value);
+
+  var price = 500 * hours * workers;
+
+  document.getElementById("price").innerText = "₹" + price;
 }
 
-document.getElementById("hours").onchange=updatePrice;
-document.getElementById("workers").onchange=updatePrice;
+document.getElementById("hours").addEventListener("change", updatePrice);
+document.getElementById("workers").addEventListener("change", updatePrice);
 
-function book(){
-var location=document.getElementById("location").value;
-var service=document.getElementById("service").value;
-var hours=document.getElementById("hours").value;
-var workers=document.getElementById("workers").value;
 
-if(location.trim()==""){
-alert("Please enter your location.");
-return;
-}
+document.getElementById("bookButton").addEventListener("click", function(){
 
-var booking={
-location:location,
-service:service,
-hours:hours,
-workers:workers,
-status:"Booking created"
-};
+  var location = document.getElementById("location").value;
+  var service = document.getElementById("service").value;
+  var hours = document.getElementById("hours").value;
+  var workers = document.getElementById("workers").value;
 
-localStorage.setItem("housekeep_booking",JSON.stringify(booking));
+  if(location.trim() === ""){
+    alert("Please enter your location.");
+    return;
+  }
 
-var result=document.getElementById("result");
-result.style.display="block";
-result.innerText="Booking created successfully! Your request has been saved.";
-}
+  var booking = {
+    location: location,
+    service: service,
+    hours: hours,
+    workers: workers,
+    status: "Booking created"
+  };
+
+  localStorage.setItem(
+    "housekeep_booking",
+    JSON.stringify(booking)
+  );
+
+  var result = document.getElementById("result");
+
+  result.style.display = "block";
+
+  result.innerText =
+    "Booking created successfully! Your request has been saved on this device.";
+
+});
+
 updatePrice();
-</script></body>
+
+</script>
+
+</body>
 </html>
