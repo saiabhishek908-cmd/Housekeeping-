@@ -1,73 +1,76 @@
 <!doctype html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HouseKeep</title>
 
 <style>
-body{
-  font-family:Arial;
-  margin:0;
-  background:#f5f5f5;
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f5f5f5;
 }
 
-.app{
-  max-width:480px;
-  margin:auto;
-  background:white;
-  min-height:100vh;
-  padding:25px;
-  box-sizing:border-box;
+.app {
+  max-width: 480px;
+  margin: auto;
+  background: white;
+  min-height: 100vh;
+  padding: 25px;
+  box-sizing: border-box;
 }
 
-h1{
-  font-size:32px;
+h1 {
+  font-size: 32px;
+  margin-bottom: 5px;
 }
 
-p{
-  color:#666;
+p {
+  color: #666;
 }
 
-.box{
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:15px;
-  margin:12px 0;
+.box {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 15px;
+  margin: 12px 0;
 }
 
-label{
-  display:block;
-  font-weight:bold;
-  margin-bottom:8px;
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 
-input,select{
-  width:100%;
-  padding:13px;
-  border:1px solid #ccc;
-  border-radius:8px;
-  font-size:16px;
-  box-sizing:border-box;
+input,
+select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
-button{
-  width:100%;
-  padding:15px;
-  background:#111;
-  color:white;
-  border:0;
-  border-radius:10px;
-  font-size:17px;
-  font-weight:bold;
-  margin-top:10px;
+button {
+  width: 100%;
+  padding: 15px;
+  background: #111;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: bold;
+  margin-top: 10px;
 }
 
-#result{
-  display:none;
-  margin-top:15px;
-  padding:15px;
-  background:#e9f7e9;
-  border-radius:10px;
+#result {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  background: #e9f7e9;
+  border-radius: 10px;
+  font-weight: bold;
 }
 </style>
 </head>
@@ -77,6 +80,7 @@ button{
 <div class="app">
 
 <h1>HouseKeep</h1>
+
 <p>Book a housekeeper when you need one.</p>
 
 <div class="box">
@@ -86,39 +90,50 @@ button{
 
 <div class="box">
 <label>Service</label>
+
 <select id="service">
 <option>Regular cleaning</option>
 <option>Deep cleaning</option>
 <option>Kitchen cleaning</option>
 <option>Bathroom cleaning</option>
 </select>
+
 </div>
 
 <div class="box">
 <label>Duration</label>
+
 <select id="hours">
 <option value="1">1 hour</option>
 <option value="2">2 hours</option>
 <option value="3">3 hours</option>
 <option value="4">4 hours</option>
 </select>
+
 </div>
 
 <div class="box">
 <label>Housekeepers</label>
+
 <select id="workers">
 <option value="1">1 housekeeper</option>
 <option value="2">2 housekeepers</option>
 <option value="3">3 housekeepers</option>
 </select>
+
 </div>
 
 <div class="box">
+
 <label>Estimated Price</label>
+
 <h2 id="price">₹500</h2>
+
 </div>
 
-<button id="bookButton">Book a Housekeeper</button>
+<button id="bookButton">
+Book a Housekeeper
+</button>
 
 <div id="result"></div>
 
@@ -126,53 +141,35 @@ button{
 
 <script>
 
-function updatePrice(){
+var hours = document.getElementById("hours");
+var workers = document.getElementById("workers");
+var price = document.getElementById("price");
+var bookButton = document.getElementById("bookButton");
+var result = document.getElementById("result");
 
-  var hours = Number(document.getElementById("hours").value);
-  var workers = Number(document.getElementById("workers").value);
+function updatePrice() {
 
-  var price = 500 * hours * workers;
+  var selectedHours = Number(hours.value);
+  var selectedWorkers = Number(workers.value);
 
-  document.getElementById("price").innerText = "₹" + price;
+  var total = 500 * selectedHours * selectedWorkers;
+
+  price.innerText = "₹" + total;
 }
 
-document.getElementById("hours").addEventListener("change", updatePrice);
-document.getElementById("workers").addEventListener("change", updatePrice);
+hours.addEventListener("change", updatePrice);
+
+workers.addEventListener("change", updatePrice);
 
 
-document.getElementById("bookButton").addEventListener("click", function(){
-
-  var location = document.getElementById("location").value;
-  var service = document.getElementById("service").value;
-  var hours = document.getElementById("hours").value;
-  var workers = document.getElementById("workers").value;
-
-  if(location.trim() === ""){
-    alert("Please enter your location.");
-    return;
-  }
-
-  var booking = {
-    location: location,
-    service: service,
-    hours: hours,
-    workers: workers,
-    status: "Booking created"
-  };
-
-  localStorage.setItem(
-    "housekeep_booking",
-    JSON.stringify(booking)
-  );
-
-  var result = document.getElementById("result");
+bookButton.addEventListener("click", function() {
 
   result.style.display = "block";
 
-  result.innerText =
-    "Booking created successfully! Your request has been saved on this device.";
+  result.innerText = "Button clicked successfully!";
 
 });
+
 
 updatePrice();
 
