@@ -161,13 +161,17 @@ hours.addEventListener("change", updatePrice);
 
 workers.addEventListener("change", updatePrice);
 
-
 bookButton.addEventListener("click", function() {
+  var bookingId = "HK" + Date.now();
 
   result.style.display = "block";
-
-  result.innerText = "Button clicked successfully!";
-
+  result.innerText =
+    "Booking confirmed!\n\n" +
+    "Booking ID: " + bookingId + "\n" +
+    "Service: " + document.getElementById("service").value + "\n" +
+    "Duration: " + hours.value + " hour(s)\n" +
+    "Housekeepers: " + workers.value + "\n" +
+    "Price: " + price.innerText;
 });
 
 
