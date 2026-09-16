@@ -151,122 +151,377 @@ Book a Housekeeper
 <script>
 
 /* ================================
-   SUPABASE CONNECTION
+   SUPABASE
    ================================ */
 
-var SUPABASE_URL = "https://yrbhxouodsfsxryaducn.supabase.co";
+var SUPABASE_URL =
+"https://yrbhxouodsfsxryaducn.supabase.co";
 
-var SUPABASE_KEY = 
-"sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x"
-
-/* ================================
-   PAGE ELEMENTS
-   ================================ */
-
-var hours = document.getElementById("hours");
-
-var workers = document.getElementById("workers");
-
-var price = document.getElementById("price");
-
-var bookButton = document.getElementById("bookButton");
-
-var result = document.getElementById("result");
-
-var myBooking = document.getElementById("myBooking");
-
-var bookingDetails = document.getElementById("bookingDetails");
+var SUPABASE_KEY =
+"sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
 
 
 /* ================================
-   PRICE CALCULATION
+   ELEMENTS
+   ================================ */
+
+var hours =
+document.getElementById("hours");
+
+var workers =
+document.getElementById("workers");
+
+var price =
+document.getElementById("price");
+
+var bookButton =
+document.getElementById("bookButton");
+
+var result =
+document.getElementById("result");
+
+var myBooking =
+document.getElementById("myBooking");
+
+var bookingDetails =
+document.getElementById("bookingDetails");
+
+
+/* ================================
+   PRICE
    ================================ */
 
 function updatePrice() {
 
-  var selectedHours = Number(hours.value);
+  var selectedHours =
+  Number(hours.value);
 
-  var selectedWorkers = Number(workers.value);
+  var selectedWorkers =
+  Number(workers.value);
 
-  var total = 500 * selectedHours * selectedWorkers;
+  var total =
+  500 * selectedHours * selectedWorkers;
 
-  price.innerText = "₹" + total;
+  price.innerText =
+  "₹" + total;
 }
 
 
-hours.addEventListener("change", updatePrice);
+hours.addEventListener(
+  "change",
+  updatePrice
+);
 
-workers.addEventListener("change", updatePrice);
+workers.addEventListener(
+  "change",
+  updatePrice
+);
 
 
 /* ================================
-   BOOKING
+   DISPLAY BOOKING
    ================================ */
 
-bookButton.addEventListener("click", async function() {
+function displayBooking(booking) {
 
-  var bookingId = "HK" + Date.now();
+  myBooking.style.display =
+    "block";
 
-  var booking = {
+  bookingDetails.innerText =
 
-    location: document.getElementById("location").value,
+    "Booking ID: " +
+    (booking.bookingCode || booking.id) +
+    "\n" +
 
-    service: document.getElementById("service").value,
+    "Location: " +
+    booking.location +
+    "\n" +
 
-    hours: Number(hours.value),
+    "Service: " +
+    booking.service +
+    "\n" +
 
-    workers: Number(workers.value),
+    "Duration: " +
+    booking.hours +
+    " hour(s)\n" +
 
-    price: price.innerText,
+    "Housekeepers: " +
+    booking.workers +
+    "\n" +
 
-    status: "pending"
+    "Price: " +
+    booking.price +
+    "\n" +
 
-  };
+    "Status: " +
+    booking.status;
+
+}
+
+
+/* ================================
+   CREATE BOOKING
+   ================================ */
+
+bookButton.addEventListener(
+  "click",
+  async function() {
+
+    var bookingCode =
+      "HK" + Date.now();
+
+
+    var booking = {
+
+      location:
+      document.getElementById(
+        "location"
+      ).value,
+
+      service:
+      document.getElementById(
+        "service"
+      ).value,
+
+      hours:
+      Number(hours.value),
+
+      workers:
+      Number(workers.value),
+
+      price:
+      price.innerText,
+
+      status:
+      "pending"
+    };
+
+
+    try {
+
+      var response =
+        await fetch(
+          SUPABASE_URL +
+          "/rest/v1/bookings",
+          {
+
+            method: "POST",
+
+            headers: {
+
+              "apikey":
+              SUPABASE_KEY,
+
+              "Authorization":
+              "Bearer " +
+              SUPABASE_KEY,
+
+              "Content-Type":
+              "application/json",
+
+              "Prefer":
+              "return=representation"
+            },
+
+            body:
+            JSON.stringify(booking)
+          }
+        );
+
+
+      if (!response.ok) {
+
+        var errorText =
+          await response.text();
+
+        result.style.display =
+          "block";
+
+        result.innerText =
+          "Booking failed:\n" +
+          errorText;
+
+        return;
+      }
+
+
+      /* GET SUPABASE ROW */
+
+      var savedRows =
+        await response.json();
+
+      if (
+        !savedRows ||
+        savedRows.length === 0
+      ) {
+
+        result.style.display =
+          "block";
+
+        result.innerText =
+          "Booking created, but ID could not be retrieved.";
+
+        return;
+      }
+
+
+      /* REAL DATABASE ID */
+
+      booking.id =
+        savedRows[0].id;
+
+      booking.bookingCode =
+        bookingCode;
+
+
+      /* SAVE LOCALLY */
+
+      localStorage.setItem(
+        "housekeepBooking",
+        JSON.stringify(booking)
+      );
+
+
+      /* CONFIRMATION */
+
+      result.style.display =
+        "block";
+
+      result.innerText =
+
+        "Booking confirmed!\n\n" +
+
+        "Booking ID: " +
+        bookingCode +
+        "\n" +
+
+        "Service: " +
+        booking.service +
+        "\n" +
+
+        "Duration: " +
+        booking.hours +
+        " hour(s)\n" +
+
+        "Housekeepers: " +
+        booking.workers +
+        "\n" +
+
+        "Price: " +
+        booking.price;
+
+
+      displayBooking(
+        booking
+      );
+
+    }
+
+
+    catch(error) {
+
+      result.style.display =
+        "block";
+
+      result.innerText =
+        "Connection error:\n" +
+        error.message;
+    }
+
+  }
+);
+
+
+/* ================================
+   CHECK BOOKING STATUS
+   ================================ */
+
+async function checkBookingStatus() {
+
+  var saved =
+    localStorage.getItem(
+      "housekeepBooking"
+    );
+
+
+  if (!saved) {
+    return;
+  }
+
+
+  var booking =
+    JSON.parse(saved);
+
+
+  if (!booking.id) {
+    return;
+  }
 
 
   try {
 
-    var response = await fetch(
-      SUPABASE_URL + "/rest/v1/bookings",
-      {
-        method: "POST",
+    var response =
+      await fetch(
 
-        headers: {
+        SUPABASE_URL +
+        "/rest/v1/bookings?id=eq." +
+        booking.id +
+        "&select=*",
 
-          "apikey": SUPABASE_KEY,
+        {
 
-          "Authorization": "Bearer " + SUPABASE_KEY,
+          headers: {
 
-          "Content-Type": "application/json",
+            "apikey":
+            SUPABASE_KEY,
 
-          "Prefer": "return=minimal"
+            "Authorization":
+            "Bearer " +
+            SUPABASE_KEY
+          }
 
-        },
+        }
 
-        body: JSON.stringify(booking)
-
-      }
-    );
+      );
 
 
     if (!response.ok) {
-
-      var errorText = await response.text();
-
-      result.style.display = "block";
-
-      result.innerText =
-        "Booking failed:\n" + errorText;
-
       return;
     }
 
 
-    /* ================================
-       SAVE BOOKING LOCALLY
-       ================================ */
+    var bookings =
+      await response.json();
 
-    booking.id = bookingId;
+
+    if (
+      bookings.length === 0
+    ) {
+      return;
+    }
+
+
+    /* UPDATE LOCAL BOOKING */
+
+    booking.status =
+      bookings[0].status;
+
+
+    booking.location =
+      bookings[0].location;
+
+    booking.service =
+      bookings[0].service;
+
+    booking.hours =
+      bookings[0].hours;
+
+    booking.workers =
+      bookings[0].workers;
+
+    booking.price =
+      bookings[0].price;
+
 
     localStorage.setItem(
       "housekeepBooking",
@@ -274,151 +529,67 @@ bookButton.addEventListener("click", async function() {
     );
 
 
-    /* ================================
-       SHOW CONFIRMATION
-       ================================ */
-
-    result.style.display = "block";
-
-    result.innerText =
-      "Booking confirmed!\n\n" +
-
-      "Booking ID: " + bookingId + "\n" +
-
-      "Service: " + booking.service + "\n" +
-
-      "Duration: " + booking.hours + " hour(s)\n" +
-
-      "Housekeepers: " + booking.workers + "\n" +
-
-      "Price: " + booking.price;
-
-
-    /* ================================
-       SHOW MY BOOKING
-       ================================ */
-
-    myBooking.style.display = "block";
-
-    bookingDetails.innerText =
-
-      "Booking ID: " + booking.id + "\n" +
-
-      "Location: " + booking.location + "\n" +
-
-      "Service: " + booking.service + "\n" +
-
-      "Duration: " + booking.hours + " hour(s)\n" +
-
-      "Housekeepers: " + booking.workers + "\n" +
-
-      "Price: " + booking.price + "\n" +
-
-      "Status: Pending";
+    displayBooking(
+      booking
+    );
 
   }
 
 
-  catch (error) {
+  catch(error) {
 
-    result.style.display = "block";
-
-    result.innerText =
-      "Connection error:\n" + error.message;
+    console.log(
+      "Status check error:",
+      error
+    );
 
   }
 
-});
+}
 
 
 /* ================================
    LOAD EXISTING BOOKING
    ================================ */
 
-var savedBooking =
-  localStorage.getItem("housekeepBooking");
-async function checkBookingStatus() {
+function loadExistingBooking() {
 
-  if (!savedBooking) {
-    return;
-  }
-
-  var booking = JSON.parse(savedBooking);
-
-  var response = await fetch(
-    SUPABASE_URL +
-    "/rest/v1/bookings?id=eq." +
-    booking.id +
-    "&select=status",
-    {
-      headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": "Bearer " + SUPABASE_KEY
-      }
-    }
-  );
-
-  if (!response.ok) {
-    return;
-  }
-
-  var bookings = await response.json();
-
-  if (bookings.length > 0) {
-
-    booking.status = bookings[0].status;
-
-    localStorage.setItem(
-      "housekeepBooking",
-      JSON.stringify(booking)
+  var saved =
+    localStorage.getItem(
+      "housekeepBooking"
     );
 
-    bookingDetails.innerText =
-      "Booking ID: " + booking.id + "\n" +
-      "Location: " + booking.location + "\n" +
-      "Service: " + booking.service + "\n" +
-      "Duration: " + booking.hours + " hour(s)\n" +
-      "Housekeepers: " + booking.workers + "\n" +
-      "Price: " + booking.price + "\n" +
-      "Status: " + booking.status;
+
+  if (!saved) {
+    return;
   }
-}
-
-checkBookingStatus(); 
-setInterval(checkBookingStatus, 5000);
-if (savedBooking) {
-
-  var existingBooking =
-    JSON.parse(savedBooking);
 
 
-  myBooking.style.display = "block";
+  var booking =
+    JSON.parse(saved);
 
 
-  bookingDetails.innerText =
-
-    "Booking ID: " + existingBooking.id + "\n" +
-
-    "Location: " + existingBooking.location + "\n" +
-
-    "Service: " + existingBooking.service + "\n" +
-
-    "Duration: " + existingBooking.hours + " hour(s)\n" +
-
-    "Housekeepers: " + existingBooking.workers + "\n" +
-
-    "Price: " + existingBooking.price + "\n" +
-
-    "Status: " + existingBooking.status;
+  displayBooking(
+    booking
+  );
 
 }
 
 
 /* ================================
-   INITIAL PRICE
+   START
    ================================ */
 
 updatePrice();
+
+loadExistingBooking();
+
+checkBookingStatus();
+
+setInterval(
+  checkBookingStatus,
+  5000
+);
 
 </script>
 
