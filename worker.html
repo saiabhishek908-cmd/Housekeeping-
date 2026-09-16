@@ -69,6 +69,9 @@
   <div class="booking">
 
     <h2>New Booking</h2>
+    <div id="bookingDetails">
+  Loading booking...
+</div>
 
     <p><strong>Location:</strong> Hyderabad</p>
     <p><strong>Service:</strong> Regular cleaning</p>
@@ -101,6 +104,66 @@ function rejectJob() {
   document.getElementById("status").innerText =
     "Job rejected.";
 }
+
+<script>
+
+var SUPABASE_URL = "https://yrbhxouodsfsxryaducn.supabase.co";
+
+var SUPABASE_KEY =
+"sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
+
+async function loadBookings() {
+
+  var response = await fetch(
+    SUPABASE_URL + "/rest/v1/bookings?select=*&status=eq.pending&order=created_at.desc",
+    {
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY
+      }
+    }
+  );
+
+  if (!response.ok) {
+    document.getElementById("status").innerText =
+      "Could not load bookings.";
+    return;
+  }
+
+  var bookings = await response.json();
+
+  if (bookings.length === 0) {
+    document.getElementById("status").innerText =
+      "No new bookings.";
+    return;
+  }
+
+  var booking = bookings[0];
+
+  document.getElementById("bookingDetails").innerHTML =
+    "<strong>Location:</strong> " + booking.location + "<br>" +
+    "<strong>Service:</strong> " + booking.service + "<br>" +
+    "<strong>Duration:</strong> " + booking.hours + " hour(s)<br>" +
+    "<strong>Housekeepers:</strong> " + booking.workers + "<br>" +
+    "<strong>Price:</strong> " + booking.price;
+
+}
+
+function acceptJob() {
+
+  document.getElementById("status").innerText =
+    "Job accepted! Navigate to the customer location.";
+
+}
+
+function rejectJob() {
+
+  document.getElementById("status").innerText =
+    "Job rejected.";
+
+}
+
+loadBookings();
 
 </script>
 
