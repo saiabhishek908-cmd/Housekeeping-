@@ -337,8 +337,55 @@ bookButton.addEventListener("click", async function() {
 
 var savedBooking =
   localStorage.getItem("housekeepBooking");
+async function checkBookingStatus() {
 
+  if (!savedBooking) {
+    return;
+  }
 
+  var booking = JSON.parse(savedBooking);
+
+  var response = await fetch(
+    SUPABASE_URL +
+    "/rest/v1/bookings?id=eq." +
+    booking.id +
+    "&select=status",
+    {
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY
+      }
+    }
+  );
+
+  if (!response.ok) {
+    return;
+  }
+
+  var bookings = await response.json();
+
+  if (bookings.length > 0) {
+
+    booking.status = bookings[0].status;
+
+    localStorage.setItem(
+      "housekeepBooking",
+      JSON.stringify(booking)
+    );
+
+    bookingDetails.innerText =
+      "Booking ID: " + booking.id + "\n" +
+      "Location: " + booking.location + "\n" +
+      "Service: " + booking.service + "\n" +
+      "Duration: " + booking.hours + " hour(s)\n" +
+      "Housekeepers: " + booking.workers + "\n" +
+      "Price: " + booking.price + "\n" +
+      "Status: " + booking.status;
+  }
+}
+
+checkBookingStatus(); 
+setInterval(checkBookingStatus, 5000);
 if (savedBooking) {
 
   var existingBooking =
