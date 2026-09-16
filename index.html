@@ -81,6 +81,7 @@ button {
 <div class="app">
 
 <h1>HouseKeep</h1>
+
 <p>Book a housekeeper when you need one.</p>
 
 <div class="box">
@@ -90,48 +91,62 @@ button {
 
 <div class="box">
 <label>Service</label>
+
 <select id="service">
 <option>Regular cleaning</option>
 <option>Deep cleaning</option>
 <option>Kitchen cleaning</option>
 <option>Bathroom cleaning</option>
 </select>
+
 </div>
 
 <div class="box">
 <label>Duration</label>
+
 <select id="hours">
 <option value="1">1 hour</option>
 <option value="2">2 hours</option>
 <option value="3">3 hours</option>
 <option value="4">4 hours</option>
 </select>
+
 </div>
 
 <div class="box">
 <label>Housekeepers</label>
+
 <select id="workers">
 <option value="1">1 housekeeper</option>
 <option value="2">2 housekeepers</option>
 <option value="3">3 housekeepers</option>
 </select>
+
 </div>
 
 <div class="box">
 <label>Estimated Price</label>
+
 <h2 id="price">₹500</h2>
+
 </div>
 
-<button id="bookButton">Book a Housekeeper</button>
+<button id="bookButton">
+Book a Housekeeper
+</button>
 
 <div id="result"></div>
 
 <div id="myBooking" class="box" style="display:none;">
+
 <h2>My Booking</h2>
+
 <p id="bookingDetails"></p>
+
 </div>
 
 </div>
+
 
 <script>
 
@@ -139,21 +154,27 @@ button {
    SUPABASE CONNECTION
    ================================ */
 
-var SUPABASE_URL =https://yrbhxouodsfsxryaducn.supabase.co/rest/v1/ 
-var SUPABASE_KEY = sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x
+var SUPABASE_URL = "https://yrbhxouodsfsxryaducn.supabase.co";
 
+var SUPABASE_KEY = 
+sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x
 
 /* ================================
    PAGE ELEMENTS
    ================================ */
 
 var hours = document.getElementById("hours");
+
 var workers = document.getElementById("workers");
+
 var price = document.getElementById("price");
+
 var bookButton = document.getElementById("bookButton");
+
 var result = document.getElementById("result");
 
 var myBooking = document.getElementById("myBooking");
+
 var bookingDetails = document.getElementById("bookingDetails");
 
 
@@ -164,6 +185,7 @@ var bookingDetails = document.getElementById("bookingDetails");
 function updatePrice() {
 
   var selectedHours = Number(hours.value);
+
   var selectedWorkers = Number(workers.value);
 
   var total = 500 * selectedHours * selectedWorkers;
@@ -171,7 +193,9 @@ function updatePrice() {
   price.innerText = "₹" + total;
 }
 
+
 hours.addEventListener("change", updatePrice);
+
 workers.addEventListener("change", updatePrice);
 
 
@@ -184,8 +208,6 @@ bookButton.addEventListener("click", async function() {
   var bookingId = "HK" + Date.now();
 
   var booking = {
-
-    id: bookingId,
 
     location: document.getElementById("location").value,
 
@@ -210,13 +232,19 @@ bookButton.addEventListener("click", async function() {
         method: "POST",
 
         headers: {
+
           "apikey": SUPABASE_KEY,
+
           "Authorization": "Bearer " + SUPABASE_KEY,
+
           "Content-Type": "application/json",
+
           "Prefer": "return=minimal"
+
         },
 
         body: JSON.stringify(booking)
+
       }
     );
 
@@ -234,7 +262,11 @@ bookButton.addEventListener("click", async function() {
     }
 
 
-    /* Save locally too */
+    /* ================================
+       SAVE BOOKING LOCALLY
+       ================================ */
+
+    booking.id = bookingId;
 
     localStorage.setItem(
       "housekeepBooking",
@@ -242,33 +274,50 @@ bookButton.addEventListener("click", async function() {
     );
 
 
-    /* Show confirmation */
+    /* ================================
+       SHOW CONFIRMATION
+       ================================ */
 
     result.style.display = "block";
 
     result.innerText =
       "Booking confirmed!\n\n" +
+
       "Booking ID: " + bookingId + "\n" +
+
       "Service: " + booking.service + "\n" +
+
       "Duration: " + booking.hours + " hour(s)\n" +
+
       "Housekeepers: " + booking.workers + "\n" +
+
       "Price: " + booking.price;
 
 
-    /* Show My Booking */
+    /* ================================
+       SHOW MY BOOKING
+       ================================ */
 
     myBooking.style.display = "block";
 
     bookingDetails.innerText =
+
       "Booking ID: " + booking.id + "\n" +
+
       "Location: " + booking.location + "\n" +
+
       "Service: " + booking.service + "\n" +
+
       "Duration: " + booking.hours + " hour(s)\n" +
+
       "Housekeepers: " + booking.workers + "\n" +
+
       "Price: " + booking.price + "\n" +
+
       "Status: Pending";
 
   }
+
 
   catch (error) {
 
@@ -295,21 +344,32 @@ if (savedBooking) {
   var existingBooking =
     JSON.parse(savedBooking);
 
+
   myBooking.style.display = "block";
 
+
   bookingDetails.innerText =
+
     "Booking ID: " + existingBooking.id + "\n" +
+
     "Location: " + existingBooking.location + "\n" +
+
     "Service: " + existingBooking.service + "\n" +
+
     "Duration: " + existingBooking.hours + " hour(s)\n" +
+
     "Housekeepers: " + existingBooking.workers + "\n" +
+
     "Price: " + existingBooking.price + "\n" +
+
     "Status: " + existingBooking.status;
 
 }
 
 
-/* Initial price */
+/* ================================
+   INITIAL PRICE
+   ================================ */
 
 updatePrice();
 
