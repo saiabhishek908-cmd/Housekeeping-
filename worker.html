@@ -69,15 +69,10 @@
   <div class="booking">
 
     <h2>New Booking</h2>
-    <div id="bookingDetails">
-  Loading booking...
-</div>
 
-    <p><strong>Location:</strong> Hyderabad</p>
-    <p><strong>Service:</strong> Regular cleaning</p>
-    <p><strong>Duration:</strong> 2 hours</p>
-    <p><strong>Housekeepers:</strong> 1</p>
-    <p><strong>Payout:</strong> ₹600</p>
+    <div id="bookingDetails">
+      Loading booking...
+    </div>
 
     <button class="accept" onclick="acceptJob()">
       Accept Job
@@ -95,16 +90,78 @@
 
 <script>
 
+var SUPABASE_URL =
+  "https://yrbhxouodsfsxryaducn.supabase.co";
+
+var SUPABASE_KEY =
+  "sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
+
+var currentBookingId = null;
+
+
+/* LOAD PENDING BOOKING */
+
+async function loadBookings() {
+
+  var response = await fetch(
+    SUPABASE_URL +
+    "/rest/v1/bookings?select=*&status=eq.pending&order=created_at.desc",
+    {
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY
+      }
+    }
+  );
+
+  if (!response.ok) {
+
+    document.getElementById("status").innerText =
+      "Could not load bookings.";
+
+    return;
+  }
+
+  var bookings = await response.json();
+
+  if (bookings.length === 0) {
+
+    document.getElementById("bookingDetails").innerText =
+      "No new bookings.";
+
+    return;
+  }
+
+  var booking = bookings[0];
+
+  currentBookingId = booking.id;
+
+  document.getElementById("bookingDetails").innerHTML =
+    "<strong>Location:</strong> " + booking.location + "<br>" +
+    "<strong>Service:</strong> " + booking.service + "<br>" +
+    "<strong>Duration:</strong> " + booking.hours + " hour(s)<br>" +
+    "<strong>Housekeepers:</strong> " + booking.workers + "<br>" +
+    "<strong>Price:</strong> " + booking.price;
+
+}
+
+
+/* ACCEPT JOB */
+
 async function acceptJob() {
 
   if (!currentBookingId) {
+
     document.getElementById("status").innerText =
       "No booking selected.";
+
     return;
   }
 
   var response = await fetch(
-    SUPABASE_URL + "/rest/v1/bookings?id=eq." + currentBookingId,
+    SUPABASE_URL +
+    "/rest/v1/bookings?id=eq." +
+    currentBookingId,
     {
       method: "PATCH",
 
@@ -122,79 +179,68 @@ async function acceptJob() {
   );
 
   if (!response.ok) {
+
+    var errorText = await response.text();
+
     document.getElementById("status").innerText =
-      "Could not accept the booking.";
+      "Could not accept booking:\n" + errorText;
+
     return;
   }
 
   document.getElementById("status").innerText =
     "Job accepted! Navigate to the customer location.";
-}
-}
 
-function rejectJob() {
-  document.getElementById("status").innerText =
-    "Job rejected.";
 }
 
-<script>
 
-var SUPABASE_URL = "https://yrbhxouodsfsxryaducn.supabase.co";
+/* REJECT JOB */
 
-var SUPABASE_KEY =
-"sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
+async function rejectJob() {
 
-var currentBookingId = null;
-  async function loadBookings() {
+  if (!currentBookingId) {
+
+    document.getElementById("status").innerText =
+      "No booking selected.";
+
+    return;
+  }
 
   var response = await fetch(
-    SUPABASE_URL + "/rest/v1/bookings?select=*&status=eq.pending&order=created_at.desc",
+    SUPABASE_URL +
+    "/rest/v1/bookings?id=eq." +
+    currentBookingId,
     {
+      method: "PATCH",
+
       headers: {
         "apikey": SUPABASE_KEY,
-        "Authorization": "Bearer " + SUPABASE_KEY
-      }
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+
+      body: JSON.stringify({
+        status: "rejected"
+      })
     }
   );
 
   if (!response.ok) {
+
     document.getElementById("status").innerText =
-      "Could not load bookings.";
+      "Could not reject booking.";
+
     return;
   }
-
-  var bookings = await response.json();
-
-  if (bookings.length === 0) {
-    document.getElementById("status").innerText =
-      "No new bookings.";
-    return;
-  }
-
-  var booking = bookings[0];
-currentBookingId = booking.id;
-  document.getElementById("bookingDetails").innerHTML =
-    "<strong>Location:</strong> " + booking.location + "<br>" +
-    "<strong>Service:</strong> " + booking.service + "<br>" +
-    "<strong>Duration:</strong> " + booking.hours + " hour(s)<br>" +
-    "<strong>Housekeepers:</strong> " + booking.workers + "<br>" +
-    "<strong>Price:</strong> " + booking.price;
-
-}
-
-function acceptJob() {
-
-  document.getElementById("status").innerText =
-    "Job accepted! Navigate to the customer location.";
-
-}
-
-function rejectJob() {
 
   document.getElementById("status").innerText =
     "Job rejected.";
 
 }
+
+
+/* START */
 
 loadBookings();
 
