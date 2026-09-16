@@ -95,9 +95,41 @@
 
 <script>
 
-function acceptJob() {
+async function acceptJob() {
+
+  if (!currentBookingId) {
+    document.getElementById("status").innerText =
+      "No booking selected.";
+    return;
+  }
+
+  var response = await fetch(
+    SUPABASE_URL + "/rest/v1/bookings?id=eq." + currentBookingId,
+    {
+      method: "PATCH",
+
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+
+      body: JSON.stringify({
+        status: "accepted"
+      })
+    }
+  );
+
+  if (!response.ok) {
+    document.getElementById("status").innerText =
+      "Could not accept the booking.";
+    return;
+  }
+
   document.getElementById("status").innerText =
     "Job accepted! Navigate to the customer location.";
+}
 }
 
 function rejectJob() {
@@ -112,7 +144,8 @@ var SUPABASE_URL = "https://yrbhxouodsfsxryaducn.supabase.co";
 var SUPABASE_KEY =
 "sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
 
-async function loadBookings() {
+var currentBookingId = null;
+  async function loadBookings() {
 
   var response = await fetch(
     SUPABASE_URL + "/rest/v1/bookings?select=*&status=eq.pending&order=created_at.desc",
@@ -139,7 +172,7 @@ async function loadBookings() {
   }
 
   var booking = bookings[0];
-
+currentBookingId = booking.id;
   document.getElementById("bookingDetails").innerHTML =
     "<strong>Location:</strong> " + booking.location + "<br>" +
     "<strong>Service:</strong> " + booking.service + "<br>" +
