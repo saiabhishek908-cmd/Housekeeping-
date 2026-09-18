@@ -245,7 +245,15 @@ document.getElementById("locationStatus");
 
 
 /* ================================
-   LOCATION TEST
+   GPS VARIABLES
+   ================================ */
+
+var latitude = null;
+var longitude = null;
+
+
+/* ================================
+   GET CURRENT LOCATION
    ================================ */
 
 locationButton.addEventListener(
@@ -267,10 +275,10 @@ locationButton.addEventListener(
 
       function(position) {
 
-        var latitude =
+        latitude =
           position.coords.latitude;
 
-        var longitude =
+        longitude =
           position.coords.longitude;
 
         locationInput.value =
@@ -417,10 +425,21 @@ bookButton.addEventListener(
     var bookingCode =
       "HK" + Date.now();
 
+
+    /* ================================
+       BOOKING DATA
+       ================================ */
+
     var booking = {
 
       location:
       locationInput.value,
+
+      latitude:
+      latitude,
+
+      longitude:
+      longitude,
 
       service:
       document.getElementById(
@@ -439,6 +458,25 @@ bookButton.addEventListener(
       status:
       "pending"
     };
+
+
+    /* ================================
+       CHECK LOCATION
+       ================================ */
+
+    if (
+      latitude === null ||
+      longitude === null
+    ) {
+
+      result.style.display =
+        "block";
+
+      result.innerText =
+        "Please use your current location before booking.";
+
+      return;
+    }
 
 
     try {
@@ -645,6 +683,12 @@ async function checkBookingStatus() {
 
     booking.location =
       bookings[0].location;
+
+    booking.latitude =
+      bookings[0].latitude;
+
+    booking.longitude =
+      bookings[0].longitude;
 
     booking.service =
       bookings[0].service;
