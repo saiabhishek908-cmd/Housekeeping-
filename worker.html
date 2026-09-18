@@ -265,9 +265,13 @@ async function loadBookings() {
        GET NEWEST BOOKING
        ================================= */
 
-    var booking =
-      bookings[0];
+    
+var booking =
+  bookings[0];
 
+console.log("WORKER BOOKING:", booking);
+console.log("LATITUDE:", booking.latitude);
+console.log("LONGITUDE:", booking.longitude);
 
     currentBookingId =
       booking.id;
