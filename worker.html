@@ -266,6 +266,87 @@ function hideJob() {
 
 
 /* =================================
+   NEW BOOKING ALERT
+   ================================= */
+
+function alertNewBooking(booking) {
+
+  /* Visual alert */
+
+  newJobAlert.style.display =
+    "block";
+
+
+  /* =================================
+     PHONE VIBRATION
+     ================================= */
+
+  if (
+    "vibrate" in navigator
+  ) {
+
+    try {
+
+      navigator.vibrate([
+        500,
+        200,
+        500
+      ]);
+
+    }
+
+    catch(error) {
+
+      console.log(
+        "Vibration unavailable:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /* =================================
+     BROWSER NOTIFICATION
+     ================================= */
+
+  if (
+    "Notification" in window &&
+    Notification.permission === "granted"
+  ) {
+
+    try {
+
+      new Notification(
+        "HouseKeep - New Cleaning Request",
+        {
+          body:
+            booking.service +
+            " • " +
+            booking.hours +
+            " hour(s) • " +
+            booking.price
+        }
+      );
+
+    }
+
+    catch(error) {
+
+      console.log(
+        "Notification error:",
+        error
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =================================
    SHOW JOB
    ================================= */
 
@@ -283,7 +364,7 @@ function showJob(booking) {
 
 
   /* =================================
-     NEW JOB ALERT
+     NEW BOOKING DETECTION
      ================================= */
 
   if (
@@ -291,33 +372,10 @@ function showJob(booking) {
     !workerBusy
   ) {
 
-    newJobAlert.style.display =
-      "block";
-
     lastSeenBookingId =
       booking.id;
 
-
-    /* Browser notification */
-
-    if (
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-
-      new Notification(
-        "HouseKeep - New Cleaning Request",
-        {
-          body:
-            booking.service +
-            " • " +
-            booking.hours +
-            " hour(s) • " +
-            booking.price
-        }
-      );
-
-    }
+    alertNewBooking(booking);
 
   }
 
@@ -423,6 +481,7 @@ function showJob(booking) {
 
       "</div>";
 
+
     navigateButton.style.display =
       "none";
 
@@ -449,10 +508,12 @@ function showJob(booking) {
 async function loadBookings() {
 
   /* Don't look for another job
-     while worker is handling one */
+     after worker accepts one */
 
   if (workerBusy) {
+
     return;
+
   }
 
 
@@ -591,7 +652,9 @@ async function acceptJob() {
   }
 
 
-  /* Stop showing new jobs */
+  /* =================================
+     WORKER BECOMES BUSY
+     ================================= */
 
   workerBusy =
     true;
@@ -684,6 +747,11 @@ async function acceptJob() {
       "none";
 
 
+    /*
+       IMPORTANT:
+       Hide both buttons after accepting.
+    */
+
     acceptButton.style.display =
       "none";
 
@@ -691,8 +759,24 @@ async function acceptJob() {
       "none";
 
 
-    navigateButton.style.display =
-      "block";
+    /*
+       Keep navigation available.
+    */
+
+    if (
+      currentBooking &&
+      currentBooking.latitude !== null &&
+      currentBooking.latitude !== undefined &&
+      currentBooking.latitude !== "" &&
+      currentBooking.longitude !== null &&
+      currentBooking.longitude !== undefined &&
+      currentBooking.longitude !== ""
+    ) {
+
+      navigateButton.style.display =
+        "block";
+
+    }
 
 
     status.innerText =
@@ -822,7 +906,9 @@ async function rejectJob() {
        ================================= */
 
     status.innerText =
-      "❌ Job rejected.\n\nWaiting for another request...";
+
+      "❌ Job rejected.\n\n" +
+      "Waiting for another request...";
 
 
     currentBookingId =
@@ -851,10 +937,12 @@ async function rejectJob() {
       "block";
 
 
-    /*
-       Allow worker to receive
-       another job
-    */
+    acceptButton.disabled =
+      false;
+
+    rejectButton.disabled =
+      false;
+
 
     workerBusy =
       false;
@@ -890,7 +978,7 @@ async function rejectJob() {
 
 
 /* =================================
-   REQUEST NOTIFICATION PERMISSION
+   NOTIFICATION PERMISSION
    ================================= */
 
 async function requestNotificationPermission() {
@@ -930,7 +1018,7 @@ loadBookings();
 
 
 /* =================================
-   CHECK FOR NEW JOBS
+   CHECK FOR NEW BOOKINGS
    EVERY 5 SECONDS
    ================================= */
 
