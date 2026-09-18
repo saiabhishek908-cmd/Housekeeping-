@@ -25,6 +25,10 @@
       margin-bottom: 5px;
     }
 
+    p {
+      color: #666;
+    }
+
     .booking {
       border: 1px solid #ddd;
       border-radius: 12px;
@@ -38,7 +42,8 @@
       white-space: pre-line;
     }
 
-    button {
+    button,
+    .navigate {
       width: 100%;
       padding: 15px;
       border: none;
@@ -46,6 +51,7 @@
       font-size: 17px;
       font-weight: bold;
       margin-top: 10px;
+      box-sizing: border-box;
     }
 
     .accept {
@@ -64,16 +70,19 @@
       text-decoration: none;
       display: block;
       text-align: center;
-      box-sizing: border-box;
     }
 
     .coordinates {
       margin-top: 12px;
-      padding: 10px;
+      padding: 12px;
       background: #f5f5f5;
       border-radius: 8px;
       font-size: 14px;
       color: #555;
+    }
+
+    .loading {
+      color: #666;
     }
   </style>
 </head>
@@ -83,13 +92,14 @@
 <div class="app">
 
   <h1>HouseKeep Worker</h1>
+
   <p>New cleaning request</p>
 
   <div class="booking">
 
     <h2>New Booking</h2>
 
-    <div id="bookingDetails">
+    <div id="bookingDetails" class="loading">
       Loading booking...
     </div>
 
@@ -100,26 +110,40 @@
       class="navigate"
       href="#"
       target="_blank"
-      style="display:none;"
+      style="display: none;"
     >
       📍 Navigate to Customer
     </a>
 
-    <button class="accept" onclick="acceptJob()">
+    <button
+      class="accept"
+      onclick="acceptJob()"
+    >
       Accept Job
     </button>
 
-    <button class="reject" onclick="rejectJob()">
+    <button
+      class="reject"
+      onclick="rejectJob()"
+    >
       Reject
     </button>
 
-    <div id="status" class="status"></div>
+    <div
+      id="status"
+      class="status"
+    ></div>
 
   </div>
 
 </div>
 
+
 <script>
+
+/* =================================
+   SUPABASE
+   ================================= */
 
 var SUPABASE_URL =
   "https://yrbhxouodsfsxryaducn.supabase.co";
@@ -127,314 +151,458 @@ var SUPABASE_URL =
 var SUPABASE_KEY =
   "sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
 
+
+/* =================================
+   CURRENT BOOKING
+   ================================= */
+
 var currentBookingId = null;
 
 
-/* ================================
+/* =================================
    LOAD PENDING BOOKING
-   ================================ */
+   ================================= */
 
 async function loadBookings() {
 
-  var response = await fetch(
-    SUPABASE_URL +
-    "/rest/v1/bookings?select=*&status=eq.pending&order=created_at.desc",
-    {
-      headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": "Bearer " + SUPABASE_KEY
-      }
-    }
-  );
+  var bookingDetails =
+    document.getElementById(
+      "bookingDetails"
+    );
 
-
-  if (!response.ok) {
-
-    document.getElementById("status").innerText =
-      "Could not load bookings.";
-
-    return;
-  }
-
-
-  var bookings =
-    await response.json();
-
-
-  if (bookings.length === 0) {
-
-    document.getElementById("bookingDetails").innerText =
-      "No new bookings.";
-
-    document.getElementById("navigateButton").style.display =
-      "none";
-
-    return;
-  }
-
-
-  var booking =
-    bookings[0];
-
-
-  currentBookingId =
-    booking.id;
-
-
-  /* ================================
-     BOOKING DETAILS
-     ================================ */
-
-  document.getElementById(
-    "bookingDetails"
-  ).innerHTML =
-
-    "<strong>Location:</strong> " +
-    booking.location +
-    "<br>" +
-
-    "<strong>Service:</strong> " +
-    booking.service +
-    "<br>" +
-
-    "<strong>Duration:</strong> " +
-    booking.hours +
-    " hour(s)<br>" +
-
-    "<strong>Housekeepers:</strong> " +
-    booking.workers +
-    "<br>" +
-
-    "<strong>Price:</strong> " +
-    booking.price;
-
-
-  /* ================================
-     GPS LOCATION
-     ================================ */
-
-  if (
-    booking.latitude !== null &&
-    booking.longitude !== null
-  ) {
-
+  var coordinates =
     document.getElementById(
       "coordinates"
-    ).innerHTML =
+    );
 
-      "<div class='coordinates'>" +
-
-      "<strong>Customer GPS:</strong><br>" +
-
-      booking.latitude +
-      ", " +
-      booking.longitude +
-
-      "</div>";
+  var navigateButton =
+    document.getElementById(
+      "navigateButton"
+    );
 
 
-    /* ================================
-       GOOGLE MAPS NAVIGATION
-       ================================ */
+  try {
 
-    var mapsUrl =
-      "https://www.google.com/maps/dir/?api=1&destination=" +
-      booking.latitude +
-      "," +
-      booking.longitude;
+    var response =
+      await fetch(
 
+        SUPABASE_URL +
 
-    var navigateButton =
-      document.getElementById(
-        "navigateButton"
+        "/rest/v1/bookings" +
+
+        "?select=id,location,service,hours,workers,price,status,latitude,longitude" +
+
+        "&status=eq.pending" +
+
+        "&order=created_at.desc",
+
+        {
+
+          headers: {
+
+            "apikey":
+            SUPABASE_KEY,
+
+            "Authorization":
+            "Bearer " +
+            SUPABASE_KEY
+
+          }
+
+        }
+
       );
 
 
-    navigateButton.href =
-      mapsUrl;
+    /* =================================
+       CHECK RESPONSE
+       ================================= */
+
+    if (!response.ok) {
+
+      var errorText =
+        await response.text();
+
+      bookingDetails.innerText =
+        "Could not load bookings.";
+
+      document.getElementById(
+        "status"
+      ).innerText =
+        errorText;
+
+      return;
+    }
 
 
-    navigateButton.style.display =
-      "block";
+    /* =================================
+       GET BOOKINGS
+       ================================= */
+
+    var bookings =
+      await response.json();
+
+
+    if (
+      !bookings ||
+      bookings.length === 0
+    ) {
+
+      bookingDetails.innerText =
+        "No new bookings.";
+
+      coordinates.innerHTML =
+        "";
+
+      navigateButton.style.display =
+        "none";
+
+      return;
+    }
+
+
+    /* =================================
+       GET NEWEST BOOKING
+       ================================= */
+
+    var booking =
+      bookings[0];
+
+
+    currentBookingId =
+      booking.id;
+
+
+    /* =================================
+       DISPLAY BOOKING
+       ================================= */
+
+    bookingDetails.innerHTML =
+
+      "<strong>Location:</strong> " +
+      booking.location +
+      "<br><br>" +
+
+      "<strong>Service:</strong> " +
+      booking.service +
+      "<br><br>" +
+
+      "<strong>Duration:</strong> " +
+      booking.hours +
+      " hour(s)" +
+      "<br><br>" +
+
+      "<strong>Housekeepers:</strong> " +
+      booking.workers +
+      "<br><br>" +
+
+      "<strong>Price:</strong> " +
+      booking.price;
+
+
+    /* =================================
+       CHECK GPS
+       ================================= */
+
+    var hasLatitude =
+      booking.latitude !== null &&
+      booking.latitude !== undefined &&
+      booking.latitude !== "";
+
+
+    var hasLongitude =
+      booking.longitude !== null &&
+      booking.longitude !== undefined &&
+      booking.longitude !== "";
+
+
+    if (
+      hasLatitude &&
+      hasLongitude
+    ) {
+
+      /* ================================
+         SHOW GPS
+         ================================ */
+
+      coordinates.innerHTML =
+
+        "<div class='coordinates'>" +
+
+        "<strong>Customer GPS:</strong><br>" +
+
+        booking.latitude +
+        ", " +
+        booking.longitude +
+
+        "</div>";
+
+
+      /* ================================
+         CREATE GOOGLE MAPS LINK
+         ================================ */
+
+      var mapsUrl =
+
+        "https://www.google.com/maps/dir/?api=1&destination=" +
+
+        encodeURIComponent(
+          booking.latitude +
+          "," +
+          booking.longitude
+        );
+
+
+      navigateButton.href =
+        mapsUrl;
+
+
+      navigateButton.style.display =
+        "block";
+
+    }
+
+
+    else {
+
+      coordinates.innerHTML =
+
+        "<div class='coordinates'>" +
+
+        "Customer GPS location not available." +
+
+        "</div>";
+
+
+      navigateButton.style.display =
+        "none";
+
+    }
 
   }
-  else {
+
+
+  catch(error) {
+
+    bookingDetails.innerText =
+      "Connection error.";
 
     document.getElementById(
-      "coordinates"
-    ).innerHTML =
+      "status"
+    ).innerText =
+      error.message;
 
-      "<div class='coordinates'>" +
-      "Customer GPS location not available." +
-      "</div>";
-
-    document.getElementById(
-      "navigateButton"
-    ).style.display =
-      "none";
   }
 
 }
 
 
-/* ================================
+/* =================================
    ACCEPT JOB
-   ================================ */
+   ================================= */
 
 async function acceptJob() {
 
   if (!currentBookingId) {
 
-    document.getElementById("status").innerText =
+    document.getElementById(
+      "status"
+    ).innerText =
       "No booking selected.";
 
     return;
   }
 
 
-  var response = await fetch(
+  try {
 
-    SUPABASE_URL +
-    "/rest/v1/bookings?id=eq." +
-    currentBookingId,
+    var response =
+      await fetch(
 
-    {
+        SUPABASE_URL +
 
-      method: "PATCH",
+        "/rest/v1/bookings?id=eq." +
 
-      headers: {
+        currentBookingId,
 
-        "apikey":
-        SUPABASE_KEY,
+        {
 
-        "Authorization":
-        "Bearer " +
-        SUPABASE_KEY,
+          method: "PATCH",
 
-        "Content-Type":
-        "application/json",
+          headers: {
 
-        "Prefer":
-        "return=minimal"
+            "apikey":
+            SUPABASE_KEY,
 
-      },
+            "Authorization":
+            "Bearer " +
+            SUPABASE_KEY,
 
-      body: JSON.stringify({
+            "Content-Type":
+            "application/json",
 
-        status:
-        "accepted"
+            "Prefer":
+            "return=minimal"
 
-      })
+          },
 
+          body:
+          JSON.stringify({
+
+            status:
+            "accepted"
+
+          })
+
+        }
+
+      );
+
+
+    if (!response.ok) {
+
+      var errorText =
+        await response.text();
+
+      document.getElementById(
+        "status"
+      ).innerText =
+
+        "Could not accept booking:\n" +
+        errorText;
+
+      return;
     }
 
-  );
-
-
-  if (!response.ok) {
-
-    var errorText =
-      await response.text();
 
     document.getElementById(
       "status"
     ).innerText =
 
-      "Could not accept booking:\n" +
-      errorText;
+      "Job accepted!\n" +
+      "Tap Navigate to reach the customer.";
 
-    return;
   }
 
 
-  document.getElementById(
-    "status"
-  ).innerText =
+  catch(error) {
 
-    "Job accepted!\n" +
-    "Use Navigate to reach the customer.";
+    document.getElementById(
+      "status"
+    ).innerText =
+
+      "Connection error:\n" +
+      error.message;
+
+  }
 
 }
 
 
-/* ================================
+/* =================================
    REJECT JOB
-   ================================ */
+   ================================= */
 
 async function rejectJob() {
 
   if (!currentBookingId) {
 
-    document.getElementById("status").innerText =
+    document.getElementById(
+      "status"
+    ).innerText =
       "No booking selected.";
 
     return;
   }
 
 
-  var response = await fetch(
+  try {
 
-    SUPABASE_URL +
-    "/rest/v1/bookings?id=eq." +
-    currentBookingId,
+    var response =
+      await fetch(
 
-    {
+        SUPABASE_URL +
 
-      method: "PATCH",
+        "/rest/v1/bookings?id=eq." +
 
-      headers: {
+        currentBookingId,
 
-        "apikey":
-        SUPABASE_KEY,
+        {
 
-        "Authorization":
-        "Bearer " +
-        SUPABASE_KEY,
+          method: "PATCH",
 
-        "Content-Type":
-        "application/json",
+          headers: {
 
-        "Prefer":
-        "return=minimal"
+            "apikey":
+            SUPABASE_KEY,
 
-      },
+            "Authorization":
+            "Bearer " +
+            SUPABASE_KEY,
 
-      body: JSON.stringify({
+            "Content-Type":
+            "application/json",
 
-        status:
-        "rejected"
+            "Prefer":
+            "return=minimal"
 
-      })
+          },
 
+          body:
+          JSON.stringify({
+
+            status:
+            "rejected"
+
+          })
+
+        }
+
+      );
+
+
+    if (!response.ok) {
+
+      var errorText =
+        await response.text();
+
+      document.getElementById(
+        "status"
+      ).innerText =
+
+        "Could not reject booking:\n" +
+        errorText;
+
+      return;
     }
 
-  );
-
-
-  if (!response.ok) {
 
     document.getElementById(
       "status"
     ).innerText =
 
-      "Could not reject booking.";
+      "Job rejected.";
 
-    return;
   }
 
 
-  document.getElementById(
-    "status"
-  ).innerText =
+  catch(error) {
 
-    "Job rejected.";
+    document.getElementById(
+      "status"
+    ).innerText =
+
+      "Connection error:\n" +
+      error.message;
+
+  }
 
 }
 
 
-/* ================================
+/* =================================
    START
-   ================================ */
+   ================================= */
 
 loadBookings();
 
