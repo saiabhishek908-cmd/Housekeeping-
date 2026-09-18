@@ -64,6 +64,17 @@ button {
   margin-top: 10px;
 }
 
+.locationButton {
+  background: #eee;
+  color: #111;
+}
+
+#locationStatus {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
 #result {
   display: none;
   margin-top: 15px;
@@ -85,59 +96,96 @@ button {
 <p>Book a housekeeper when you need one.</p>
 
 <div class="box">
+
 <label>Location</label>
-<input id="location" placeholder="Enter your location">
+
+<input
+  id="location"
+  placeholder="Enter your location"
+>
+
+<button
+  type="button"
+  class="locationButton"
+  id="locationButton"
+>
+📍 Use my current location
+</button>
+
+<div id="locationStatus"></div>
+
 </div>
 
+
 <div class="box">
+
 <label>Service</label>
 
 <select id="service">
+
 <option>Regular cleaning</option>
 <option>Deep cleaning</option>
 <option>Kitchen cleaning</option>
 <option>Bathroom cleaning</option>
+
 </select>
 
 </div>
 
+
 <div class="box">
+
 <label>Duration</label>
 
 <select id="hours">
+
 <option value="1">1 hour</option>
 <option value="2">2 hours</option>
 <option value="3">3 hours</option>
 <option value="4">4 hours</option>
+
 </select>
 
 </div>
 
+
 <div class="box">
+
 <label>Housekeepers</label>
 
 <select id="workers">
+
 <option value="1">1 housekeeper</option>
 <option value="2">2 housekeepers</option>
 <option value="3">3 housekeepers</option>
+
 </select>
 
 </div>
 
+
 <div class="box">
+
 <label>Estimated Price</label>
 
 <h2 id="price">₹500</h2>
 
 </div>
 
+
 <button id="bookButton">
 Book a Housekeeper
 </button>
 
+
 <div id="result"></div>
 
-<div id="myBooking" class="box" style="display:none;">
+
+<div
+  id="myBooking"
+  class="box"
+  style="display:none;"
+>
 
 <h2>My Booking</h2>
 
@@ -186,6 +234,103 @@ document.getElementById("myBooking");
 var bookingDetails =
 document.getElementById("bookingDetails");
 
+var locationInput =
+document.getElementById("location");
+
+var locationButton =
+document.getElementById("locationButton");
+
+var locationStatus =
+document.getElementById("locationStatus");
+
+
+/* ================================
+   LOCATION TEST
+   ================================ */
+
+locationButton.addEventListener(
+  "click",
+  function() {
+
+    locationStatus.innerText =
+      "Getting your location...";
+
+    if (!navigator.geolocation) {
+
+      locationStatus.innerText =
+        "Location is not supported on this device.";
+
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+
+      function(position) {
+
+        var latitude =
+          position.coords.latitude;
+
+        var longitude =
+          position.coords.longitude;
+
+        locationInput.value =
+          latitude + ", " + longitude;
+
+        locationStatus.innerText =
+          "Location detected successfully.";
+
+        console.log(
+          "Latitude:",
+          latitude
+        );
+
+        console.log(
+          "Longitude:",
+          longitude
+        );
+
+      },
+
+      function(error) {
+
+        if (error.code === 1) {
+
+          locationStatus.innerText =
+            "Location permission was denied.";
+
+        }
+        else if (error.code === 2) {
+
+          locationStatus.innerText =
+            "Location could not be determined.";
+
+        }
+        else if (error.code === 3) {
+
+          locationStatus.innerText =
+            "Location request timed out.";
+
+        }
+        else {
+
+          locationStatus.innerText =
+            "Could not get your location.";
+
+        }
+
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+
+    );
+
+  }
+);
+
 
 /* ================================
    PRICE
@@ -194,16 +339,18 @@ document.getElementById("bookingDetails");
 function updatePrice() {
 
   var selectedHours =
-  Number(hours.value);
+    Number(hours.value);
 
   var selectedWorkers =
-  Number(workers.value);
+    Number(workers.value);
 
   var total =
-  500 * selectedHours * selectedWorkers;
+    500 *
+    selectedHours *
+    selectedWorkers;
 
   price.innerText =
-  "₹" + total;
+    "₹" + total;
 }
 
 
@@ -270,13 +417,10 @@ bookButton.addEventListener(
     var bookingCode =
       "HK" + Date.now();
 
-
     var booking = {
 
       location:
-      document.getElementById(
-        "location"
-      ).value,
+      locationInput.value,
 
       service:
       document.getElementById(
@@ -345,10 +489,9 @@ bookButton.addEventListener(
       }
 
 
-      /* GET SUPABASE ROW */
-
       var savedRows =
         await response.json();
+
 
       if (
         !savedRows ||
@@ -365,8 +508,6 @@ bookButton.addEventListener(
       }
 
 
-      /* REAL DATABASE ID */
-
       booking.id =
         savedRows[0].id;
 
@@ -374,15 +515,11 @@ bookButton.addEventListener(
         bookingCode;
 
 
-      /* SAVE LOCALLY */
-
       localStorage.setItem(
         "housekeepBooking",
         JSON.stringify(booking)
       );
 
-
-      /* CONFIRMATION */
 
       result.style.display =
         "block";
@@ -426,6 +563,7 @@ bookButton.addEventListener(
       result.innerText =
         "Connection error:\n" +
         error.message;
+
     }
 
   }
@@ -478,6 +616,7 @@ async function checkBookingStatus() {
             "Authorization":
             "Bearer " +
             SUPABASE_KEY
+
           }
 
         }
@@ -501,11 +640,8 @@ async function checkBookingStatus() {
     }
 
 
-    /* UPDATE LOCAL BOOKING */
-
     booking.status =
       bookings[0].status;
-
 
     booking.location =
       bookings[0].location;
