@@ -36,6 +36,23 @@
       margin-top: 20px;
     }
 
+    .new-job {
+      background: #e8f5e9;
+      border: 1px solid #b7dfb9;
+      color: #1b5e20;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    .price {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
     .status {
       font-weight: bold;
       margin-top: 15px;
@@ -54,6 +71,10 @@
       box-sizing: border-box;
     }
 
+    button {
+      cursor: pointer;
+    }
+
     .accept {
       background: #111;
       color: white;
@@ -68,7 +89,7 @@
       background: #1a73e8;
       color: white;
       text-decoration: none;
-      display: block;
+      display: none;
       text-align: center;
     }
 
@@ -84,6 +105,15 @@
     .loading {
       color: #666;
     }
+
+    .waiting {
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: center;
+      color: #666;
+    }
   </style>
 </head>
 
@@ -93,9 +123,17 @@
 
   <h1>HouseKeep Worker</h1>
 
-  <p>New cleaning request</p>
+  <p>Available cleaning requests</p>
+
+  <div id="waitingMessage" class="waiting">
+    Checking for new bookings...
+  </div>
 
   <div class="booking">
+
+    <div id="newJobAlert" class="new-job">
+      🔔 New cleaning request available!
+    </div>
 
     <h2>New Booking</h2>
 
@@ -110,23 +148,26 @@
       class="navigate"
       href="#"
       target="_blank"
-      style="display: none;"
     >
       📍 Navigate to Customer
     </a>
 
     <button
+      id="acceptButton"
       class="accept"
       onclick="acceptJob()"
+      style="display: none;"
     >
-      Accept Job
+      ✅ Accept Job
     </button>
 
     <button
+      id="rejectButton"
       class="reject"
       onclick="rejectJob()"
+      style="display: none;"
     >
-      Reject
+      ❌ Reject
     </button>
 
     <div
@@ -158,6 +199,248 @@ var SUPABASE_KEY =
 
 var currentBookingId = null;
 
+var currentBooking = null;
+
+var lastSeenBookingId = null;
+
+var workerBusy = false;
+
+
+/* =================================
+   ELEMENTS
+   ================================= */
+
+var bookingDetails =
+  document.getElementById("bookingDetails");
+
+var coordinates =
+  document.getElementById("coordinates");
+
+var navigateButton =
+  document.getElementById("navigateButton");
+
+var acceptButton =
+  document.getElementById("acceptButton");
+
+var rejectButton =
+  document.getElementById("rejectButton");
+
+var status =
+  document.getElementById("status");
+
+var newJobAlert =
+  document.getElementById("newJobAlert");
+
+var waitingMessage =
+  document.getElementById("waitingMessage");
+
+
+/* =================================
+   HIDE JOB
+   ================================= */
+
+function hideJob() {
+
+  bookingDetails.innerText =
+    "No new bookings.";
+
+  coordinates.innerHTML =
+    "";
+
+  navigateButton.style.display =
+    "none";
+
+  acceptButton.style.display =
+    "none";
+
+  rejectButton.style.display =
+    "none";
+
+  newJobAlert.style.display =
+    "none";
+
+  waitingMessage.style.display =
+    "block";
+
+}
+
+
+/* =================================
+   SHOW JOB
+   ================================= */
+
+function showJob(booking) {
+
+  currentBooking =
+    booking;
+
+  currentBookingId =
+    booking.id;
+
+
+  waitingMessage.style.display =
+    "none";
+
+
+  /* =================================
+     NEW JOB ALERT
+     ================================= */
+
+  if (
+    lastSeenBookingId !== booking.id &&
+    !workerBusy
+  ) {
+
+    newJobAlert.style.display =
+      "block";
+
+    lastSeenBookingId =
+      booking.id;
+
+
+    /* Browser notification */
+
+    if (
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
+
+      new Notification(
+        "HouseKeep - New Cleaning Request",
+        {
+          body:
+            booking.service +
+            " • " +
+            booking.hours +
+            " hour(s) • " +
+            booking.price
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =================================
+     BOOKING DETAILS
+     ================================= */
+
+  bookingDetails.innerHTML =
+
+    "<strong>Location:</strong> " +
+    booking.location +
+    "<br><br>" +
+
+    "<strong>Service:</strong> " +
+    booking.service +
+    "<br><br>" +
+
+    "<strong>Duration:</strong> " +
+    booking.hours +
+    " hour(s)" +
+    "<br><br>" +
+
+    "<strong>Housekeepers:</strong> " +
+    booking.workers +
+    "<br><br>" +
+
+    "<div class='price'>" +
+    "💰 " +
+    booking.price +
+    "</div>";
+
+
+  /* =================================
+     GPS CHECK
+     ================================= */
+
+  var hasLatitude =
+    booking.latitude !== null &&
+    booking.latitude !== undefined &&
+    booking.latitude !== "";
+
+
+  var hasLongitude =
+    booking.longitude !== null &&
+    booking.longitude !== undefined &&
+    booking.longitude !== "";
+
+
+  if (
+    hasLatitude &&
+    hasLongitude
+  ) {
+
+    /* =================================
+       SHOW GPS
+       ================================= */
+
+    coordinates.innerHTML =
+
+      "<div class='coordinates'>" +
+
+      "<strong>Customer GPS:</strong><br>" +
+
+      booking.latitude +
+      ", " +
+      booking.longitude +
+
+      "</div>";
+
+
+    /* =================================
+       GOOGLE MAPS
+       ================================= */
+
+    var mapsUrl =
+
+      "https://www.google.com/maps/dir/?api=1&destination=" +
+
+      encodeURIComponent(
+        booking.latitude +
+        "," +
+        booking.longitude
+      );
+
+
+    navigateButton.href =
+      mapsUrl;
+
+
+    navigateButton.style.display =
+      "block";
+
+  }
+
+  else {
+
+    coordinates.innerHTML =
+
+      "<div class='coordinates'>" +
+
+      "Customer GPS location not available." +
+
+      "</div>";
+
+    navigateButton.style.display =
+      "none";
+
+  }
+
+
+  /* =================================
+     ACCEPT / REJECT
+     ================================= */
+
+  acceptButton.style.display =
+    "block";
+
+  rejectButton.style.display =
+    "block";
+
+}
+
 
 /* =================================
    LOAD PENDING BOOKING
@@ -165,20 +448,12 @@ var currentBookingId = null;
 
 async function loadBookings() {
 
-  var bookingDetails =
-    document.getElementById(
-      "bookingDetails"
-    );
+  /* Don't look for another job
+     while worker is handling one */
 
-  var coordinates =
-    document.getElementById(
-      "coordinates"
-    );
-
-  var navigateButton =
-    document.getElementById(
-      "navigateButton"
-    );
+  if (workerBusy) {
+    return;
+  }
 
 
   try {
@@ -190,7 +465,7 @@ async function loadBookings() {
 
         "/rest/v1/bookings" +
 
-        "?select=id,location,service,hours,workers,price,status,latitude,longitude" +
+        "?select=id,location,service,hours,workers,price,status,latitude,longitude,created_at" +
 
         "&status=eq.pending" +
 
@@ -215,7 +490,7 @@ async function loadBookings() {
 
 
     /* =================================
-       CHECK RESPONSE
+       RESPONSE ERROR
        ================================= */
 
     if (!response.ok) {
@@ -226,12 +501,11 @@ async function loadBookings() {
       bookingDetails.innerText =
         "Could not load bookings.";
 
-      document.getElementById(
-        "status"
-      ).innerText =
+      status.innerText =
         errorText;
 
       return;
+
     }
 
 
@@ -243,145 +517,47 @@ async function loadBookings() {
       await response.json();
 
 
+    /* =================================
+       NO BOOKINGS
+       ================================= */
+
     if (
       !bookings ||
       bookings.length === 0
     ) {
 
-      bookingDetails.innerText =
-        "No new bookings.";
-
-      coordinates.innerHTML =
-        "";
-
-      navigateButton.style.display =
-        "none";
+      hideJob();
 
       return;
-    }
-
-
-    /* =================================
-       GET NEWEST BOOKING
-       ================================= */
-
-    
-var booking =
-  bookings[0];
-
-console.log("WORKER BOOKING:", booking);
-console.log("LATITUDE:", booking.latitude);
-console.log("LONGITUDE:", booking.longitude);
-
-    currentBookingId =
-      booking.id;
-
-
-    /* =================================
-       DISPLAY BOOKING
-       ================================= */
-
-    bookingDetails.innerHTML =
-
-      "<strong>Location:</strong> " +
-      booking.location +
-      "<br><br>" +
-
-      "<strong>Service:</strong> " +
-      booking.service +
-      "<br><br>" +
-
-      "<strong>Duration:</strong> " +
-      booking.hours +
-      " hour(s)" +
-      "<br><br>" +
-
-      "<strong>Housekeepers:</strong> " +
-      booking.workers +
-      "<br><br>" +
-
-      "<strong>Price:</strong> " +
-      booking.price;
-
-
-    /* =================================
-       CHECK GPS
-       ================================= */
-
-    var hasLatitude =
-      booking.latitude !== null &&
-      booking.latitude !== undefined &&
-      booking.latitude !== "";
-
-
-    var hasLongitude =
-      booking.longitude !== null &&
-      booking.longitude !== undefined &&
-      booking.longitude !== "";
-
-
-    if (
-      hasLatitude &&
-      hasLongitude
-    ) {
-
-      /* ================================
-         SHOW GPS
-         ================================ */
-
-      coordinates.innerHTML =
-
-        "<div class='coordinates'>" +
-
-        "<strong>Customer GPS:</strong><br>" +
-
-        booking.latitude +
-        ", " +
-        booking.longitude +
-
-        "</div>";
-
-
-      /* ================================
-         CREATE GOOGLE MAPS LINK
-         ================================ */
-
-      var mapsUrl =
-
-        "https://www.google.com/maps/dir/?api=1&destination=" +
-
-        encodeURIComponent(
-          booking.latitude +
-          "," +
-          booking.longitude
-        );
-
-
-      navigateButton.href =
-        mapsUrl;
-
-
-      navigateButton.style.display =
-        "block";
 
     }
 
 
-    else {
+    /* =================================
+       NEWEST PENDING BOOKING
+       ================================= */
 
-      coordinates.innerHTML =
-
-        "<div class='coordinates'>" +
-
-        "Customer GPS location not available." +
-
-        "</div>";
+    var booking =
+      bookings[0];
 
 
-      navigateButton.style.display =
-        "none";
+    console.log(
+      "WORKER BOOKING:",
+      booking
+    );
 
-    }
+    console.log(
+      "LATITUDE:",
+      booking.latitude
+    );
+
+    console.log(
+      "LONGITUDE:",
+      booking.longitude
+    );
+
+
+    showJob(booking);
 
   }
 
@@ -391,9 +567,7 @@ console.log("LONGITUDE:", booking.longitude);
     bookingDetails.innerText =
       "Connection error.";
 
-    document.getElementById(
-      "status"
-    ).innerText =
+    status.innerText =
       error.message;
 
   }
@@ -409,13 +583,25 @@ async function acceptJob() {
 
   if (!currentBookingId) {
 
-    document.getElementById(
-      "status"
-    ).innerText =
+    status.innerText =
       "No booking selected.";
 
     return;
+
   }
+
+
+  /* Stop showing new jobs */
+
+  workerBusy =
+    true;
+
+
+  acceptButton.disabled =
+    true;
+
+  rejectButton.disabled =
+    true;
 
 
   try {
@@ -468,32 +654,69 @@ async function acceptJob() {
       var errorText =
         await response.text();
 
-      document.getElementById(
-        "status"
-      ).innerText =
+
+      workerBusy =
+        false;
+
+
+      acceptButton.disabled =
+        false;
+
+      rejectButton.disabled =
+        false;
+
+
+      status.innerText =
 
         "Could not accept booking:\n" +
         errorText;
 
       return;
+
     }
 
 
-    document.getElementById(
-      "status"
-    ).innerText =
+    /* =================================
+       ACCEPTED
+       ================================= */
 
-      "Job accepted!\n" +
-      "Tap Navigate to reach the customer.";
+    newJobAlert.style.display =
+      "none";
+
+
+    acceptButton.style.display =
+      "none";
+
+    rejectButton.style.display =
+      "none";
+
+
+    navigateButton.style.display =
+      "block";
+
+
+    status.innerText =
+
+      "✅ Job accepted!\n\n" +
+      "📍 Tap Navigate to reach the customer.";
 
   }
 
 
   catch(error) {
 
-    document.getElementById(
-      "status"
-    ).innerText =
+    workerBusy =
+      false;
+
+
+    acceptButton.disabled =
+      false;
+
+    rejectButton.disabled =
+      false;
+
+
+    status.innerText =
 
       "Connection error:\n" +
       error.message;
@@ -511,13 +734,19 @@ async function rejectJob() {
 
   if (!currentBookingId) {
 
-    document.getElementById(
-      "status"
-    ).innerText =
+    status.innerText =
       "No booking selected.";
 
     return;
+
   }
+
+
+  acceptButton.disabled =
+    true;
+
+  rejectButton.disabled =
+    true;
 
 
   try {
@@ -570,31 +799,87 @@ async function rejectJob() {
       var errorText =
         await response.text();
 
-      document.getElementById(
-        "status"
-      ).innerText =
+
+      acceptButton.disabled =
+        false;
+
+      rejectButton.disabled =
+        false;
+
+
+      status.innerText =
 
         "Could not reject booking:\n" +
         errorText;
 
       return;
+
     }
 
 
-    document.getElementById(
-      "status"
-    ).innerText =
+    /* =================================
+       REJECTED
+       ================================= */
 
-      "Job rejected.";
+    status.innerText =
+      "❌ Job rejected.\n\nWaiting for another request...";
+
+
+    currentBookingId =
+      null;
+
+    currentBooking =
+      null;
+
+
+    newJobAlert.style.display =
+      "none";
+
+
+    navigateButton.style.display =
+      "none";
+
+
+    acceptButton.style.display =
+      "none";
+
+    rejectButton.style.display =
+      "none";
+
+
+    waitingMessage.style.display =
+      "block";
+
+
+    /*
+       Allow worker to receive
+       another job
+    */
+
+    workerBusy =
+      false;
+
+
+    /* Immediately check */
+
+    setTimeout(
+      loadBookings,
+      500
+    );
 
   }
 
 
   catch(error) {
 
-    document.getElementById(
-      "status"
-    ).innerText =
+    acceptButton.disabled =
+      false;
+
+    rejectButton.disabled =
+      false;
+
+
+    status.innerText =
 
       "Connection error:\n" +
       error.message;
@@ -605,10 +890,54 @@ async function rejectJob() {
 
 
 /* =================================
+   REQUEST NOTIFICATION PERMISSION
+   ================================= */
+
+async function requestNotificationPermission() {
+
+  if (
+    "Notification" in window &&
+    Notification.permission === "default"
+  ) {
+
+    try {
+
+      await Notification.requestPermission();
+
+    }
+
+    catch(error) {
+
+      console.log(
+        "Notification permission error:",
+        error
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =================================
    START
    ================================= */
 
+requestNotificationPermission();
+
 loadBookings();
+
+
+/* =================================
+   CHECK FOR NEW JOBS
+   EVERY 5 SECONDS
+   ================================= */
+
+setInterval(
+  loadBookings,
+  5000
+);
 
 </script>
 
