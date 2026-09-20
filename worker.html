@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>HouseKeep Worker</title>
+
+  <!-- Supabase JavaScript client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body {
@@ -25,8 +32,72 @@
       margin-bottom: 5px;
     }
 
+    h2 {
+      margin-top: 0;
+    }
+
     p {
       color: #666;
+    }
+
+    .loginBox {
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .loginInput {
+      width: 100%;
+      padding: 14px;
+      box-sizing: border-box;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .loginButton {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      background: #111;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .logoutButton {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: #eee;
+      color: #111;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .loginStatus {
+      margin-top: 10px;
+      color: #666;
+      white-space: pre-line;
+      font-size: 14px;
+    }
+
+    .workerInfo {
+      display: none;
+      padding: 12px;
+      background: #eef5ff;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #333;
     }
 
     .booking {
@@ -151,6 +222,10 @@
       text-align: center;
       color: #666;
     }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 
@@ -160,97 +235,201 @@
 
   <h1>HouseKeep Worker</h1>
 
-  <p>Available cleaning requests</p>
+  <p>Worker dashboard</p>
 
-  <div id="waitingMessage" class="waiting">
-    Checking for new bookings...
-  </div>
 
-  <div class="booking">
+  <!-- =================================
+       WORKER LOGIN
+       ================================= -->
 
-    <div id="newJobAlert" class="new-job">
-      🔔 New cleaning request available!
-    </div>
+  <div
+    id="loginBox"
+    class="loginBox"
+  >
 
-    <h2>New Booking</h2>
+    <h2>🔐 Worker Login</h2>
 
-    <div id="bookingDetails" class="loading">
-      Loading booking...
-    </div>
-
-    <div id="coordinates"></div>
-
-    <a
-      id="navigateButton"
-      class="navigate"
-      href="#"
-      target="_blank"
+    <input
+      id="workerEmail"
+      class="loginInput"
+      type="email"
+      placeholder="Worker email"
+      autocomplete="username"
     >
-      📍 Navigate to Customer
-    </a>
 
+    <input
+      id="workerPassword"
+      class="loginInput"
+      type="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
 
-    <!-- ================================
-         CUSTOMER CONTACT
-         Hidden until job is accepted
-         ================================ -->
+    <button
+      id="loginButton"
+      class="loginButton"
+      onclick="loginWorker()"
+    >
+      🔐 Login
+    </button>
 
     <div
-      id="contactSection"
-      class="contactSection"
-    >
+      id="loginStatus"
+      class="loginStatus"
+    ></div>
 
-      <div class="contactTitle">
-        👤 Customer Contact
-      </div>
+  </div>
+
+
+  <!-- =================================
+       LOGGED-IN WORKER INFO
+       ================================= -->
+
+  <div
+    id="workerInfo"
+    class="workerInfo"
+  >
+
+    <strong>Logged in as:</strong>
+    <span id="workerEmailDisplay"></span>
+
+    <br>
+
+    <strong>Worker ID:</strong>
+    <span id="workerIdDisplay"></span>
+
+    <button
+      class="logoutButton"
+      onclick="logoutWorker()"
+    >
+      Logout
+    </button>
+
+  </div>
+
+
+  <!-- =================================
+       WORKER APP
+       ================================= -->
+
+  <div
+    id="workerApp"
+    class="hidden"
+  >
+
+    <p>Available cleaning requests</p>
+
+    <div
+      id="waitingMessage"
+      class="waiting"
+    >
+      Checking for new bookings...
+    </div>
+
+
+    <div class="booking">
 
       <div
-        id="contactInfo"
-        class="contactInfo"
-      ></div>
-
-      <a
-        id="callButton"
-        class="contactButton callButton"
-        href="#"
+        id="newJobAlert"
+        class="new-job"
       >
-        📞 Call Customer
-      </a>
+        🔔 New cleaning request available!
+      </div>
+
+      <h2>New Booking</h2>
+
+      <div
+        id="bookingDetails"
+        class="loading"
+      >
+        Loading booking...
+      </div>
+
+      <div id="coordinates"></div>
+
+
+      <!-- =================================
+           NAVIGATION
+           ================================= -->
 
       <a
-        id="whatsappButton"
-        class="contactButton whatsappButton"
+        id="navigateButton"
+        class="navigate"
         href="#"
         target="_blank"
       >
-        💬 WhatsApp Customer
+        📍 Navigate to Customer
       </a>
 
+
+      <!-- =================================
+           CUSTOMER CONTACT
+           Hidden until acceptance
+           ================================= -->
+
+      <div
+        id="contactSection"
+        class="contactSection"
+      >
+
+        <div class="contactTitle">
+          👤 Customer Contact
+        </div>
+
+        <div
+          id="contactInfo"
+          class="contactInfo"
+        ></div>
+
+        <a
+          id="callButton"
+          class="contactButton callButton"
+          href="#"
+        >
+          📞 Call Customer
+        </a>
+
+        <a
+          id="whatsappButton"
+          class="contactButton whatsappButton"
+          href="#"
+          target="_blank"
+        >
+          💬 WhatsApp Customer
+        </a>
+
+      </div>
+
+
+      <!-- =================================
+           ACCEPT / REJECT
+           ================================= -->
+
+      <button
+        id="acceptButton"
+        class="accept"
+        onclick="acceptJob()"
+        style="display: none;"
+      >
+        ✅ Accept Job
+      </button>
+
+      <button
+        id="rejectButton"
+        class="reject"
+        onclick="rejectJob()"
+        style="display: none;"
+      >
+        ❌ Reject
+      </button>
+
+
+      <div
+        id="status"
+        class="status"
+      ></div>
+
     </div>
-
-
-    <button
-      id="acceptButton"
-      class="accept"
-      onclick="acceptJob()"
-      style="display: none;"
-    >
-      ✅ Accept Job
-    </button>
-
-    <button
-      id="rejectButton"
-      class="reject"
-      onclick="rejectJob()"
-      style="display: none;"
-    >
-      ❌ Reject
-    </button>
-
-    <div
-      id="status"
-      class="status"
-    ></div>
 
   </div>
 
@@ -260,7 +439,7 @@
 <script>
 
 /* =================================
-   SUPABASE
+   SUPABASE CONFIG
    ================================= */
 
 var SUPABASE_URL =
@@ -271,57 +450,370 @@ var SUPABASE_KEY =
 
 
 /* =================================
+   SUPABASE CLIENT
+   ================================= */
+
+var supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =================================
+   AUTH STATE
+   ================================= */
+
+var currentUser =
+  null;
+
+var currentSession =
+  null;
+
+
+/* =================================
    CURRENT BOOKING
    ================================= */
 
-var currentBookingId = null;
+var currentBookingId =
+  null;
 
-var currentBooking = null;
+var currentBooking =
+  null;
 
-var lastSeenBookingId = null;
+var lastSeenBookingId =
+  null;
 
-var workerBusy = false;
+var workerBusy =
+  false;
 
 
 /* =================================
    ELEMENTS
    ================================= */
 
+var loginBox =
+  document.getElementById("loginBox");
+
+var workerInfo =
+  document.getElementById("workerInfo");
+
+var workerApp =
+  document.getElementById("workerApp");
+
+var workerEmail =
+  document.getElementById("workerEmail");
+
+var workerPassword =
+  document.getElementById("workerPassword");
+
+var loginButton =
+  document.getElementById("loginButton");
+
+var loginStatus =
+  document.getElementById("loginStatus");
+
+var workerEmailDisplay =
+  document.getElementById(
+    "workerEmailDisplay"
+  );
+
+var workerIdDisplay =
+  document.getElementById(
+    "workerIdDisplay"
+  );
+
 var bookingDetails =
-  document.getElementById("bookingDetails");
+  document.getElementById(
+    "bookingDetails"
+  );
 
 var coordinates =
-  document.getElementById("coordinates");
+  document.getElementById(
+    "coordinates"
+  );
 
 var navigateButton =
-  document.getElementById("navigateButton");
+  document.getElementById(
+    "navigateButton"
+  );
 
 var acceptButton =
-  document.getElementById("acceptButton");
+  document.getElementById(
+    "acceptButton"
+  );
 
 var rejectButton =
-  document.getElementById("rejectButton");
+  document.getElementById(
+    "rejectButton"
+  );
 
 var status =
-  document.getElementById("status");
+  document.getElementById(
+    "status"
+  );
 
 var newJobAlert =
-  document.getElementById("newJobAlert");
+  document.getElementById(
+    "newJobAlert"
+  );
 
 var waitingMessage =
-  document.getElementById("waitingMessage");
+  document.getElementById(
+    "waitingMessage"
+  );
 
 var contactSection =
-  document.getElementById("contactSection");
+  document.getElementById(
+    "contactSection"
+  );
 
 var contactInfo =
-  document.getElementById("contactInfo");
+  document.getElementById(
+    "contactInfo"
+  );
 
 var callButton =
-  document.getElementById("callButton");
+  document.getElementById(
+    "callButton"
+  );
 
 var whatsappButton =
-  document.getElementById("whatsappButton");
+  document.getElementById(
+    "whatsappButton"
+  );
+
+
+/* =================================
+   LOGIN
+   ================================= */
+
+async function loginWorker() {
+
+  var email =
+    workerEmail.value.trim();
+
+  var password =
+    workerPassword.value;
+
+
+  if (!email || !password) {
+
+    loginStatus.innerText =
+      "Please enter email and password.";
+
+    return;
+
+  }
+
+
+  loginButton.disabled =
+    true;
+
+  loginStatus.innerText =
+    "Logging in...";
+
+
+  try {
+
+    var result =
+      await supabaseClient.auth.signInWithPassword({
+
+        email: email,
+
+        password: password
+
+      });
+
+
+    if (result.error) {
+
+      loginStatus.innerText =
+        "Login failed:\n" +
+        result.error.message;
+
+      loginButton.disabled =
+        false;
+
+      return;
+
+    }
+
+
+    currentSession =
+      result.data.session;
+
+    currentUser =
+      result.data.user;
+
+
+    showLoggedInWorker();
+
+  }
+
+
+  catch(error) {
+
+    loginStatus.innerText =
+      "Login error:\n" +
+      error.message;
+
+    loginButton.disabled =
+      false;
+
+  }
+
+}
+
+
+/* =================================
+   SHOW LOGGED-IN WORKER
+   ================================= */
+
+function showLoggedInWorker() {
+
+  if (!currentUser) {
+
+    return;
+
+  }
+
+
+  loginBox.style.display =
+    "none";
+
+
+  workerInfo.style.display =
+    "block";
+
+
+  workerApp.classList.remove(
+    "hidden"
+  );
+
+
+  workerEmailDisplay.innerText =
+    currentUser.email || "";
+
+
+  workerIdDisplay.innerText =
+    currentUser.id;
+
+
+  loginStatus.innerText =
+    "";
+
+
+  loginButton.disabled =
+    false;
+
+
+  loadBookings();
+
+}
+
+
+/* =================================
+   LOGOUT
+   ================================= */
+
+async function logoutWorker() {
+
+  try {
+
+    await supabaseClient.auth.signOut();
+
+  }
+
+  catch(error) {
+
+    console.log(
+      "Logout error:",
+      error
+    );
+
+  }
+
+
+  currentUser =
+    null;
+
+  currentSession =
+    null;
+
+  workerBusy =
+    false;
+
+  currentBooking =
+    null;
+
+  currentBookingId =
+    null;
+
+
+  workerInfo.style.display =
+    "none";
+
+  workerApp.classList.add(
+    "hidden"
+  );
+
+  loginBox.style.display =
+    "block";
+
+
+  workerPassword.value =
+    "";
+
+  loginStatus.innerText =
+    "Logged out.";
+
+  hideJob();
+
+}
+
+
+/* =================================
+   AUTH TOKEN
+   ================================= */
+
+async function getAccessToken() {
+
+  var result =
+    await supabaseClient.auth.getSession();
+
+
+  if (result.error) {
+
+    throw result.error;
+
+  }
+
+
+  var session =
+    result.data.session;
+
+
+  if (!session) {
+
+    throw new Error(
+      "Worker session expired. Please login again."
+    );
+
+  }
+
+
+  currentSession =
+    session;
+
+
+  currentUser =
+    session.user;
+
+
+  return session.access_token;
+
+}
 
 
 /* =================================
@@ -362,6 +854,7 @@ function hideJob() {
 
   waitingMessage.style.display =
     "block";
+
 }
 
 
@@ -382,6 +875,7 @@ function hideCustomerContact() {
 
   whatsappButton.href =
     "#";
+
 }
 
 
@@ -389,13 +883,17 @@ function hideCustomerContact() {
    SHOW CUSTOMER CONTACT
    ================================= */
 
-function showCustomerContact(booking) {
+function showCustomerContact(
+  booking
+) {
 
   var customerName =
-    booking.customer_name || "Customer";
+    booking.customer_name ||
+    "Customer";
 
   var customerPhone =
-    booking.customer_phone || "";
+    booking.customer_phone ||
+    "";
 
 
   if (!customerPhone) {
@@ -407,7 +905,6 @@ function showCustomerContact(booking) {
       "<strong>Name:</strong> " +
       customerName +
       "<br><br>" +
-
       "Phone number not available.";
 
     callButton.style.display =
@@ -417,6 +914,7 @@ function showCustomerContact(booking) {
       "none";
 
     return;
+
   }
 
 
@@ -425,18 +923,12 @@ function showCustomerContact(booking) {
 
 
   contactInfo.innerHTML =
-
     "<strong>Name:</strong> " +
     customerName +
     "<br>" +
-
     "<strong>Phone:</strong> " +
     customerPhone;
 
-
-  /* =================================
-     CALL
-     ================================= */
 
   callButton.href =
     "tel:" +
@@ -446,21 +938,12 @@ function showCustomerContact(booking) {
     "block";
 
 
-  /* =================================
-     WHATSAPP
-     ================================= */
-
   var whatsappNumber =
     customerPhone.replace(
       /[^0-9]/g,
       ""
     );
 
-
-  /*
-     If Indian number is 10 digits,
-     automatically add country code.
-  */
 
   if (
     whatsappNumber.length === 10
@@ -477,7 +960,6 @@ function showCustomerContact(booking) {
     "https://wa.me/" +
     whatsappNumber;
 
-
   whatsappButton.style.display =
     "block";
 
@@ -488,17 +970,13 @@ function showCustomerContact(booking) {
    NEW BOOKING ALERT
    ================================= */
 
-function alertNewBooking(booking) {
-
-  /* Visual alert */
+function alertNewBooking(
+  booking
+) {
 
   newJobAlert.style.display =
     "block";
 
-
-  /* =================================
-     PHONE VIBRATION
-     ================================= */
 
   if (
     "vibrate" in navigator
@@ -526,13 +1004,10 @@ function alertNewBooking(booking) {
   }
 
 
-  /* =================================
-     BROWSER NOTIFICATION
-     ================================= */
-
   if (
     "Notification" in window &&
-    Notification.permission === "granted"
+    Notification.permission ===
+      "granted"
   ) {
 
     try {
@@ -569,7 +1044,9 @@ function alertNewBooking(booking) {
    SHOW JOB
    ================================= */
 
-function showJob(booking) {
+function showJob(
+  booking
+) {
 
   currentBooking =
     booking;
@@ -582,26 +1059,21 @@ function showJob(booking) {
     "none";
 
 
-  /* =================================
-     NEW BOOKING DETECTION
-     ================================= */
-
   if (
-    lastSeenBookingId !== booking.id &&
+    lastSeenBookingId !==
+      booking.id &&
     !workerBusy
   ) {
 
     lastSeenBookingId =
       booking.id;
 
-    alertNewBooking(booking);
+    alertNewBooking(
+      booking
+    );
 
   }
 
-
-  /* =================================
-     BOOKING DETAILS
-     ================================= */
 
   bookingDetails.innerHTML =
 
@@ -630,16 +1102,12 @@ function showJob(booking) {
 
   /*
      IMPORTANT:
-     Customer contact remains hidden
-     until worker accepts.
+     Contact information is NOT
+     loaded in this booking query.
   */
 
   hideCustomerContact();
 
-
-  /* =================================
-     GPS CHECK
-     ================================= */
 
   var hasLatitude =
     booking.latitude !== null &&
@@ -658,10 +1126,6 @@ function showJob(booking) {
     hasLongitude
   ) {
 
-    /* =================================
-       SHOW GPS
-       ================================= */
-
     coordinates.innerHTML =
 
       "<div class='coordinates'>" +
@@ -675,14 +1139,8 @@ function showJob(booking) {
       "</div>";
 
 
-    /* =================================
-       GOOGLE MAPS
-       ================================= */
-
     var mapsUrl =
-
       "https://www.google.com/maps/dir/?api=1&destination=" +
-
       encodeURIComponent(
         booking.latitude +
         "," +
@@ -692,7 +1150,6 @@ function showJob(booking) {
 
     navigateButton.href =
       mapsUrl;
-
 
     navigateButton.style.display =
       "block";
@@ -704,21 +1161,14 @@ function showJob(booking) {
     coordinates.innerHTML =
 
       "<div class='coordinates'>" +
-
       "Customer GPS location not available." +
-
       "</div>";
-
 
     navigateButton.style.display =
       "none";
 
   }
 
-
-  /* =================================
-     ACCEPT / REJECT
-     ================================= */
 
   acceptButton.style.display =
     "block";
@@ -735,10 +1185,14 @@ function showJob(booking) {
 
 async function loadBookings() {
 
-  /* Don't look for another job
-     after worker accepts one */
-
   if (workerBusy) {
+
+    return;
+
+  }
+
+
+  if (!currentUser) {
 
     return;
 
@@ -747,16 +1201,31 @@ async function loadBookings() {
 
   try {
 
+    var token =
+      await getAccessToken();
+
+
+    /*
+       IMPORTANT SECURITY FOUNDATION:
+
+       Customer name and phone are NOT
+       requested here.
+
+       Only basic job information is
+       loaded before acceptance.
+    */
+
     var response =
       await fetch(
 
         SUPABASE_URL +
-
         "/rest/v1/bookings" +
 
-        "?select=id,location,service,hours,workers,price,status,latitude,longitude,customer_name,customer_phone,created_at" +
+        "?select=id,location,service,hours,workers,price,status,latitude,longitude,worker_id,accepted_at,created_at" +
 
         "&status=eq.pending" +
+
+        "&worker_id=is.null" +
 
         "&order=created_at.desc",
 
@@ -769,7 +1238,7 @@ async function loadBookings() {
 
             "Authorization":
             "Bearer " +
-            SUPABASE_KEY
+            token
 
           }
 
@@ -777,10 +1246,6 @@ async function loadBookings() {
 
       );
 
-
-    /* =================================
-       RESPONSE ERROR
-       ================================= */
 
     if (!response.ok) {
 
@@ -798,17 +1263,9 @@ async function loadBookings() {
     }
 
 
-    /* =================================
-       GET BOOKINGS
-       ================================= */
-
     var bookings =
       await response.json();
 
-
-    /* =================================
-       NO BOOKINGS
-       ================================= */
 
     if (
       !bookings ||
@@ -822,10 +1279,6 @@ async function loadBookings() {
     }
 
 
-    /* =================================
-       NEWEST PENDING BOOKING
-       ================================= */
-
     var booking =
       bookings[0];
 
@@ -835,29 +1288,10 @@ async function loadBookings() {
       booking
     );
 
-    console.log(
-      "LATITUDE:",
-      booking.latitude
+
+    showJob(
+      booking
     );
-
-    console.log(
-      "LONGITUDE:",
-      booking.longitude
-    );
-
-
-    console.log(
-      "CUSTOMER NAME:",
-      booking.customer_name
-    );
-
-    console.log(
-      "CUSTOMER PHONE:",
-      booking.customer_phone
-    );
-
-
-    showJob(booking);
 
   }
 
@@ -891,9 +1325,15 @@ async function acceptJob() {
   }
 
 
-  /* =================================
-     WORKER BECOMES BUSY
-     ================================= */
+  if (!currentUser) {
+
+    status.innerText =
+      "Please login again.";
+
+    return;
+
+  }
+
 
   workerBusy =
     true;
@@ -908,6 +1348,18 @@ async function acceptJob() {
 
   try {
 
+    var token =
+      await getAccessToken();
+
+
+    /*
+       Record the authenticated
+       worker's UUID.
+
+       This is the key field that
+       future RLS policies will use.
+    */
+
     var response =
       await fetch(
 
@@ -915,7 +1367,9 @@ async function acceptJob() {
 
         "/rest/v1/bookings?id=eq." +
 
-        currentBookingId,
+        currentBookingId +
+
+        "&worker_id=is.null",
 
         {
 
@@ -928,7 +1382,7 @@ async function acceptJob() {
 
             "Authorization":
             "Bearer " +
-            SUPABASE_KEY,
+            token,
 
             "Content-Type":
             "application/json",
@@ -942,7 +1396,13 @@ async function acceptJob() {
           JSON.stringify({
 
             status:
-            "accepted"
+            "accepted",
+
+            worker_id:
+            currentUser.id,
+
+            accepted_at:
+            new Date().toISOString()
 
           })
 
@@ -960,7 +1420,6 @@ async function acceptJob() {
       workerBusy =
         false;
 
-
       acceptButton.disabled =
         false;
 
@@ -969,7 +1428,6 @@ async function acceptJob() {
 
 
       status.innerText =
-
         "Could not accept booking:\n" +
         errorText;
 
@@ -978,17 +1436,12 @@ async function acceptJob() {
     }
 
 
-    /* =================================
-       ACCEPTED
-       ================================= */
+    /*
+       Job accepted successfully.
+    */
 
     newJobAlert.style.display =
       "none";
-
-
-    /*
-       Hide Accept / Reject
-    */
 
     acceptButton.style.display =
       "none";
@@ -998,18 +1451,92 @@ async function acceptJob() {
 
 
     /*
-       Show customer contact
-       ONLY after acceptance.
+       NOW request customer
+       contact information.
+
+       This is a separate request
+       after acceptance.
     */
 
-    showCustomerContact(
-      currentBooking
-    );
+    var contactResponse =
+      await fetch(
+
+        SUPABASE_URL +
+
+        "/rest/v1/bookings" +
+
+        "?select=customer_name,customer_phone" +
+
+        "&id=eq." +
+
+        currentBookingId +
+
+        "&worker_id=eq." +
+
+        currentUser.id,
+
+        {
+
+          headers: {
+
+            "apikey":
+            SUPABASE_KEY,
+
+            "Authorization":
+            "Bearer " +
+            token
+
+          }
+
+        }
+
+      );
 
 
-    /*
-       Keep navigation available.
-    */
+    if (
+      contactResponse.ok
+    ) {
+
+      var contactRows =
+        await contactResponse.json();
+
+
+      if (
+        contactRows &&
+        contactRows.length > 0
+      ) {
+
+        currentBooking.customer_name =
+          contactRows[0].customer_name;
+
+        currentBooking.customer_phone =
+          contactRows[0].customer_phone;
+
+
+        showCustomerContact(
+          currentBooking
+        );
+
+      }
+
+      else {
+
+        status.innerText =
+          "✅ Job accepted!\n\n" +
+          "Customer contact is not available yet.";
+
+      }
+
+    }
+
+    else {
+
+      status.innerText =
+        "✅ Job accepted!\n\n" +
+        "Customer contact could not be loaded.";
+
+    }
+
 
     if (
       currentBooking &&
@@ -1028,7 +1555,6 @@ async function acceptJob() {
 
 
     status.innerText =
-
       "✅ Job accepted!\n\n" +
       "📍 Tap Navigate to reach the customer.";
 
@@ -1040,7 +1566,6 @@ async function acceptJob() {
     workerBusy =
       false;
 
-
     acceptButton.disabled =
       false;
 
@@ -1049,7 +1574,6 @@ async function acceptJob() {
 
 
     status.innerText =
-
       "Connection error:\n" +
       error.message;
 
@@ -1074,6 +1598,16 @@ async function rejectJob() {
   }
 
 
+  if (!currentUser) {
+
+    status.innerText =
+      "Please login again.";
+
+    return;
+
+  }
+
+
   acceptButton.disabled =
     true;
 
@@ -1083,6 +1617,14 @@ async function rejectJob() {
 
   try {
 
+    var token =
+      await getAccessToken();
+
+
+    /*
+       Only reject an unassigned job.
+    */
+
     var response =
       await fetch(
 
@@ -1090,7 +1632,9 @@ async function rejectJob() {
 
         "/rest/v1/bookings?id=eq." +
 
-        currentBookingId,
+        currentBookingId +
+
+        "&worker_id=is.null",
 
         {
 
@@ -1103,7 +1647,7 @@ async function rejectJob() {
 
             "Authorization":
             "Bearer " +
-            SUPABASE_KEY,
+            token,
 
             "Content-Type":
             "application/json",
@@ -1140,7 +1684,6 @@ async function rejectJob() {
 
 
       status.innerText =
-
         "Could not reject booking:\n" +
         errorText;
 
@@ -1149,12 +1692,7 @@ async function rejectJob() {
     }
 
 
-    /* =================================
-       REJECTED
-       ================================= */
-
     status.innerText =
-
       "❌ Job rejected.\n\n" +
       "Waiting for another request...";
 
@@ -1169,10 +1707,8 @@ async function rejectJob() {
     newJobAlert.style.display =
       "none";
 
-
     navigateButton.style.display =
       "none";
-
 
     acceptButton.style.display =
       "none";
@@ -1199,8 +1735,6 @@ async function rejectJob() {
       false;
 
 
-    /* Immediately check */
-
     setTimeout(
       loadBookings,
       500
@@ -1219,7 +1753,6 @@ async function rejectJob() {
 
 
     status.innerText =
-
       "Connection error:\n" +
       error.message;
 
@@ -1236,7 +1769,8 @@ async function requestNotificationPermission() {
 
   if (
     "Notification" in window &&
-    Notification.permission === "default"
+    Notification.permission ===
+      "default"
   ) {
 
     try {
@@ -1260,12 +1794,92 @@ async function requestNotificationPermission() {
 
 
 /* =================================
+   AUTH STATE LISTENER
+   ================================= */
+
+supabaseClient.auth.onAuthStateChange(
+  function(event, session) {
+
+    currentSession =
+      session;
+
+    currentUser =
+      session
+        ? session.user
+        : null;
+
+
+    if (
+      currentUser
+    ) {
+
+      showLoggedInWorker();
+
+    }
+
+  }
+);
+
+
+/* =================================
    START
    ================================= */
 
+async function startWorkerApp() {
+
+  try {
+
+    var result =
+      await supabaseClient.auth.getSession();
+
+
+    if (
+      result.data &&
+      result.data.session
+    ) {
+
+      currentSession =
+        result.data.session;
+
+      currentUser =
+        result.data.session.user;
+
+
+      showLoggedInWorker();
+
+    }
+
+    else {
+
+      loginBox.style.display =
+        "block";
+
+      workerInfo.style.display =
+        "none";
+
+      workerApp.classList.add(
+        "hidden"
+      );
+
+    }
+
+  }
+
+  catch(error) {
+
+    console.log(
+      "Session check error:",
+      error
+    );
+
+  }
+
+}
+
+
 requestNotificationPermission();
 
-loadBookings();
+startWorkerApp();
 
 
 /* =================================
