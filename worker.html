@@ -60,7 +60,8 @@
     }
 
     button,
-    .navigate {
+    .navigate,
+    .contactButton {
       width: 100%;
       padding: 15px;
       border: none;
@@ -90,6 +91,42 @@
       color: white;
       text-decoration: none;
       display: none;
+      text-align: center;
+    }
+
+    .contactSection {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 10px;
+    }
+
+    .contactTitle {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .contactInfo {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .callButton {
+      background: #168a3a;
+      color: white;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+    }
+
+    .whatsappButton {
+      background: #25d366;
+      color: white;
+      text-decoration: none;
+      display: block;
       text-align: center;
     }
 
@@ -151,6 +188,46 @@
     >
       📍 Navigate to Customer
     </a>
+
+
+    <!-- ================================
+         CUSTOMER CONTACT
+         Hidden until job is accepted
+         ================================ -->
+
+    <div
+      id="contactSection"
+      class="contactSection"
+    >
+
+      <div class="contactTitle">
+        👤 Customer Contact
+      </div>
+
+      <div
+        id="contactInfo"
+        class="contactInfo"
+      ></div>
+
+      <a
+        id="callButton"
+        class="contactButton callButton"
+        href="#"
+      >
+        📞 Call Customer
+      </a>
+
+      <a
+        id="whatsappButton"
+        class="contactButton whatsappButton"
+        href="#"
+        target="_blank"
+      >
+        💬 WhatsApp Customer
+      </a>
+
+    </div>
+
 
     <button
       id="acceptButton"
@@ -234,6 +311,18 @@ var newJobAlert =
 var waitingMessage =
   document.getElementById("waitingMessage");
 
+var contactSection =
+  document.getElementById("contactSection");
+
+var contactInfo =
+  document.getElementById("contactInfo");
+
+var callButton =
+  document.getElementById("callButton");
+
+var whatsappButton =
+  document.getElementById("whatsappButton");
+
 
 /* =================================
    HIDE JOB
@@ -259,7 +348,137 @@ function hideJob() {
   newJobAlert.style.display =
     "none";
 
+  contactSection.style.display =
+    "none";
+
+  contactInfo.innerHTML =
+    "";
+
+  callButton.href =
+    "#";
+
+  whatsappButton.href =
+    "#";
+
   waitingMessage.style.display =
+    "block";
+}
+
+
+/* =================================
+   HIDE CUSTOMER CONTACT
+   ================================= */
+
+function hideCustomerContact() {
+
+  contactSection.style.display =
+    "none";
+
+  contactInfo.innerHTML =
+    "";
+
+  callButton.href =
+    "#";
+
+  whatsappButton.href =
+    "#";
+}
+
+
+/* =================================
+   SHOW CUSTOMER CONTACT
+   ================================= */
+
+function showCustomerContact(booking) {
+
+  var customerName =
+    booking.customer_name || "Customer";
+
+  var customerPhone =
+    booking.customer_phone || "";
+
+
+  if (!customerPhone) {
+
+    contactSection.style.display =
+      "block";
+
+    contactInfo.innerHTML =
+      "<strong>Name:</strong> " +
+      customerName +
+      "<br><br>" +
+
+      "Phone number not available.";
+
+    callButton.style.display =
+      "none";
+
+    whatsappButton.style.display =
+      "none";
+
+    return;
+  }
+
+
+  contactSection.style.display =
+    "block";
+
+
+  contactInfo.innerHTML =
+
+    "<strong>Name:</strong> " +
+    customerName +
+    "<br>" +
+
+    "<strong>Phone:</strong> " +
+    customerPhone;
+
+
+  /* =================================
+     CALL
+     ================================= */
+
+  callButton.href =
+    "tel:" +
+    customerPhone;
+
+  callButton.style.display =
+    "block";
+
+
+  /* =================================
+     WHATSAPP
+     ================================= */
+
+  var whatsappNumber =
+    customerPhone.replace(
+      /[^0-9]/g,
+      ""
+    );
+
+
+  /*
+     If Indian number is 10 digits,
+     automatically add country code.
+  */
+
+  if (
+    whatsappNumber.length === 10
+  ) {
+
+    whatsappNumber =
+      "91" +
+      whatsappNumber;
+
+  }
+
+
+  whatsappButton.href =
+    "https://wa.me/" +
+    whatsappNumber;
+
+
+  whatsappButton.style.display =
     "block";
 
 }
@@ -409,6 +628,15 @@ function showJob(booking) {
     "</div>";
 
 
+  /*
+     IMPORTANT:
+     Customer contact remains hidden
+     until worker accepts.
+  */
+
+  hideCustomerContact();
+
+
   /* =================================
      GPS CHECK
      ================================= */
@@ -526,7 +754,7 @@ async function loadBookings() {
 
         "/rest/v1/bookings" +
 
-        "?select=id,location,service,hours,workers,price,status,latitude,longitude,created_at" +
+        "?select=id,location,service,hours,workers,price,status,latitude,longitude,customer_name,customer_phone,created_at" +
 
         "&status=eq.pending" +
 
@@ -615,6 +843,17 @@ async function loadBookings() {
     console.log(
       "LONGITUDE:",
       booking.longitude
+    );
+
+
+    console.log(
+      "CUSTOMER NAME:",
+      booking.customer_name
+    );
+
+    console.log(
+      "CUSTOMER PHONE:",
+      booking.customer_phone
     );
 
 
@@ -748,8 +987,7 @@ async function acceptJob() {
 
 
     /*
-       IMPORTANT:
-       Hide both buttons after accepting.
+       Hide Accept / Reject
     */
 
     acceptButton.style.display =
@@ -757,6 +995,16 @@ async function acceptJob() {
 
     rejectButton.style.display =
       "none";
+
+
+    /*
+       Show customer contact
+       ONLY after acceptance.
+    */
+
+    showCustomerContact(
+      currentBooking
+    );
 
 
     /*
@@ -931,6 +1179,9 @@ async function rejectJob() {
 
     rejectButton.style.display =
       "none";
+
+
+    hideCustomerContact();
 
 
     waitingMessage.style.display =
