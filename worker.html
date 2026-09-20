@@ -418,22 +418,22 @@
            ================================= -->
 
       <button
-        id="acceptButton"
-        class="accept"
-        onclick="acceptJob()"
-        style="display: none;"
-      >
-        ✅ Accept Job
-      </button>
+  type="button"
+  id="acceptButton"
+  class="accept"
+  style="display: none;"
+>
+  ✅ Accept Job
+</button>
 
-      <button
-        id="rejectButton"
-        class="reject"
-        onclick="rejectJob()"
-        style="display: none;"
-      >
-        ❌ Reject
-      </button>
+<button
+  type="button"
+  id="rejectButton"
+  class="reject"
+  style="display: none;"
+>
+  ❌ Reject
+</button>
 
 
       <div
@@ -589,7 +589,15 @@ var whatsappButton =
     "whatsappButton"
   );
 
+acceptButton.addEventListener("click", function () {
+  status.innerText = "⏳ Accept button clicked...";
+  acceptJob();
+});
 
+rejectButton.addEventListener("click", function () {
+  status.innerText = "⏳ Reject button clicked...";
+  rejectJob();
+});
 /* =================================
    LOGIN
    ================================= */
