@@ -95,6 +95,44 @@ button {
 
 <p>Book a housekeeper when you need one.</p>
 
+
+<!-- ================================
+     CUSTOMER DETAILS
+     ================================ -->
+
+<div class="box">
+
+<label>Customer Name</label>
+
+<input
+  id="customerName"
+  type="text"
+  placeholder="Enter your name"
+  autocomplete="name"
+>
+
+</div>
+
+
+<div class="box">
+
+<label>Phone Number</label>
+
+<input
+  id="customerPhone"
+  type="tel"
+  placeholder="Enter your phone number"
+  autocomplete="tel"
+  inputmode="tel"
+>
+
+</div>
+
+
+<!-- ================================
+     LOCATION
+     ================================ -->
+
 <div class="box">
 
 <label>Location</label>
@@ -117,6 +155,10 @@ button {
 </div>
 
 
+<!-- ================================
+     SERVICE
+     ================================ -->
+
 <div class="box">
 
 <label>Service</label>
@@ -132,6 +174,10 @@ button {
 
 </div>
 
+
+<!-- ================================
+     DURATION
+     ================================ -->
 
 <div class="box">
 
@@ -149,6 +195,10 @@ button {
 </div>
 
 
+<!-- ================================
+     HOUSEKEEPERS
+     ================================ -->
+
 <div class="box">
 
 <label>Housekeepers</label>
@@ -163,6 +213,10 @@ button {
 
 </div>
 
+
+<!-- ================================
+     PRICE
+     ================================ -->
 
 <div class="box">
 
@@ -180,6 +234,10 @@ Book a Housekeeper
 
 <div id="result"></div>
 
+
+<!-- ================================
+     MY BOOKING
+     ================================ -->
 
 <div
   id="myBooking"
@@ -212,6 +270,12 @@ var SUPABASE_KEY =
 /* ================================
    ELEMENTS
    ================================ */
+
+var customerName =
+document.getElementById("customerName");
+
+var customerPhone =
+document.getElementById("customerPhone");
 
 var hours =
 document.getElementById("hours");
@@ -388,6 +452,14 @@ function displayBooking(booking) {
     (booking.bookingCode || booking.id) +
     "\n" +
 
+    "Customer: " +
+    (booking.customer_name || "Not provided") +
+    "\n" +
+
+    "Phone: " +
+    (booking.customer_phone || "Not provided") +
+    "\n" +
+
     "Location: " +
     booking.location +
     "\n" +
@@ -427,10 +499,55 @@ bookButton.addEventListener(
 
 
     /* ================================
+       CUSTOMER DETAILS VALIDATION
+       ================================ */
+
+    var name =
+      customerName.value.trim();
+
+    var phone =
+      customerPhone.value.trim();
+
+
+    if (!name) {
+
+      result.style.display =
+        "block";
+
+      result.innerText =
+        "Please enter your name.";
+
+      customerName.focus();
+
+      return;
+    }
+
+
+    if (!phone) {
+
+      result.style.display =
+        "block";
+
+      result.innerText =
+        "Please enter your phone number.";
+
+      customerPhone.focus();
+
+      return;
+    }
+
+
+    /* ================================
        BOOKING DATA
        ================================ */
 
     var booking = {
+
+      customer_name:
+      name,
+
+      customer_phone:
+      phone,
 
       location:
       locationInput.value,
@@ -570,6 +687,10 @@ bookButton.addEventListener(
         bookingCode +
         "\n" +
 
+        "Customer: " +
+        booking.customer_name +
+        "\n" +
+
         "Service: " +
         booking.service +
         "\n" +
@@ -701,6 +822,12 @@ async function checkBookingStatus() {
 
     booking.price =
       bookings[0].price;
+
+    booking.customer_name =
+      bookings[0].customer_name;
+
+    booking.customer_phone =
+      bookings[0].customer_phone;
 
 
     localStorage.setItem(
