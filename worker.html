@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -13,6 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -68,6 +70,10 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+    }
+
+    .loginButton:disabled {
+      opacity: 0.6;
     }
 
     .logoutButton {
@@ -145,6 +151,11 @@
 
     button {
       cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .accept {
@@ -226,6 +237,7 @@
     .hidden {
       display: none !important;
     }
+
   </style>
 </head>
 
@@ -464,28 +476,22 @@ var supabaseClient =
    AUTH STATE
    ================================= */
 
-var currentUser =
-  null;
+var currentUser = null;
 
-var currentSession =
-  null;
+var currentSession = null;
 
 
 /* =================================
    CURRENT BOOKING
    ================================= */
 
-var currentBookingId =
-  null;
+var currentBookingId = null;
 
-var currentBooking =
-  null;
+var currentBooking = null;
 
-var lastSeenBookingId =
-  null;
+var lastSeenBookingId = null;
 
-var workerBusy =
-  false;
+var workerBusy = false;
 
 
 /* =================================
@@ -603,12 +609,10 @@ async function loginWorker() {
       "Please enter email and password.";
 
     return;
-
   }
 
 
-  loginButton.disabled =
-    true;
+  loginButton.disabled = true;
 
   loginStatus.innerText =
     "Logging in...";
@@ -632,11 +636,9 @@ async function loginWorker() {
         "Login failed:\n" +
         result.error.message;
 
-      loginButton.disabled =
-        false;
+      loginButton.disabled = false;
 
       return;
-
     }
 
 
@@ -651,16 +653,13 @@ async function loginWorker() {
 
   }
 
-
   catch(error) {
 
     loginStatus.innerText =
       "Login error:\n" +
       error.message;
 
-    loginButton.disabled =
-      false;
-
+    loginButton.disabled = false;
   }
 
 }
@@ -673,39 +672,27 @@ async function loginWorker() {
 function showLoggedInWorker() {
 
   if (!currentUser) {
-
     return;
-
   }
 
 
-  loginBox.style.display =
-    "none";
+  loginBox.style.display = "none";
 
+  workerInfo.style.display = "block";
 
-  workerInfo.style.display =
-    "block";
-
-
-  workerApp.classList.remove(
-    "hidden"
-  );
+  workerApp.classList.remove("hidden");
 
 
   workerEmailDisplay.innerText =
     currentUser.email || "";
 
-
   workerIdDisplay.innerText =
     currentUser.id;
 
 
-  loginStatus.innerText =
-    "";
+  loginStatus.innerText = "";
 
-
-  loginButton.disabled =
-    false;
+  loginButton.disabled = false;
 
 
   loadBookings();
@@ -735,38 +722,27 @@ async function logoutWorker() {
   }
 
 
-  currentUser =
-    null;
+  currentUser = null;
 
-  currentSession =
-    null;
+  currentSession = null;
 
-  workerBusy =
-    false;
+  workerBusy = false;
 
-  currentBooking =
-    null;
+  currentBooking = null;
 
-  currentBookingId =
-    null;
+  currentBookingId = null;
 
 
-  workerInfo.style.display =
-    "none";
+  workerInfo.style.display = "none";
 
-  workerApp.classList.add(
-    "hidden"
-  );
+  workerApp.classList.add("hidden");
 
-  loginBox.style.display =
-    "block";
+  loginBox.style.display = "block";
 
 
-  workerPassword.value =
-    "";
+  workerPassword.value = "";
 
-  loginStatus.innerText =
-    "Logged out.";
+  loginStatus.innerText = "Logged out.";
 
   hideJob();
 
@@ -784,9 +760,7 @@ async function getAccessToken() {
 
 
   if (result.error) {
-
     throw result.error;
-
   }
 
 
@@ -803,12 +777,9 @@ async function getAccessToken() {
   }
 
 
-  currentSession =
-    session;
+  currentSession = session;
 
-
-  currentUser =
-    session.user;
+  currentUser = session.user;
 
 
   return session.access_token;
@@ -825,35 +796,25 @@ function hideJob() {
   bookingDetails.innerText =
     "No new bookings.";
 
-  coordinates.innerHTML =
-    "";
+  coordinates.innerHTML = "";
 
-  navigateButton.style.display =
-    "none";
+  navigateButton.style.display = "none";
 
-  acceptButton.style.display =
-    "none";
+  acceptButton.style.display = "none";
 
-  rejectButton.style.display =
-    "none";
+  rejectButton.style.display = "none";
 
-  newJobAlert.style.display =
-    "none";
+  newJobAlert.style.display = "none";
 
-  contactSection.style.display =
-    "none";
+  contactSection.style.display = "none";
 
-  contactInfo.innerHTML =
-    "";
+  contactInfo.innerHTML = "";
 
-  callButton.href =
-    "#";
+  callButton.href = "#";
 
-  whatsappButton.href =
-    "#";
+  whatsappButton.href = "#";
 
-  waitingMessage.style.display =
-    "block";
+  waitingMessage.style.display = "block";
 
 }
 
@@ -864,17 +825,13 @@ function hideJob() {
 
 function hideCustomerContact() {
 
-  contactSection.style.display =
-    "none";
+  contactSection.style.display = "none";
 
-  contactInfo.innerHTML =
-    "";
+  contactInfo.innerHTML = "";
 
-  callButton.href =
-    "#";
+  callButton.href = "#";
 
-  whatsappButton.href =
-    "#";
+  whatsappButton.href = "#";
 
 }
 
@@ -907,14 +864,11 @@ function showCustomerContact(
       "<br><br>" +
       "Phone number not available.";
 
-    callButton.style.display =
-      "none";
+    callButton.style.display = "none";
 
-    whatsappButton.style.display =
-      "none";
+    whatsappButton.style.display = "none";
 
     return;
-
   }
 
 
@@ -931,11 +885,9 @@ function showCustomerContact(
 
 
   callButton.href =
-    "tel:" +
-    customerPhone;
+    "tel:" + customerPhone;
 
-  callButton.style.display =
-    "block";
+  callButton.style.display = "block";
 
 
   var whatsappNumber =
@@ -978,9 +930,7 @@ function alertNewBooking(
     "block";
 
 
-  if (
-    "vibrate" in navigator
-  ) {
+  if ("vibrate" in navigator) {
 
     try {
 
@@ -1006,8 +956,7 @@ function alertNewBooking(
 
   if (
     "Notification" in window &&
-    Notification.permission ===
-      "granted"
+    Notification.permission === "granted"
   ) {
 
     try {
@@ -1048,11 +997,9 @@ function showJob(
   booking
 ) {
 
-  currentBooking =
-    booking;
+  currentBooking = booking;
 
-  currentBookingId =
-    booking.id;
+  currentBookingId = booking.id;
 
 
   waitingMessage.style.display =
@@ -1060,17 +1007,14 @@ function showJob(
 
 
   if (
-    lastSeenBookingId !==
-      booking.id &&
+    lastSeenBookingId !== booking.id &&
     !workerBusy
   ) {
 
     lastSeenBookingId =
       booking.id;
 
-    alertNewBooking(
-      booking
-    );
+    alertNewBooking(booking);
 
   }
 
@@ -1101,9 +1045,8 @@ function showJob(
 
 
   /*
-     IMPORTANT:
-     Contact information is NOT
-     loaded in this booking query.
+    Customer contact is deliberately
+    NOT requested before acceptance.
   */
 
   hideCustomerContact();
@@ -1113,7 +1056,6 @@ function showJob(
     booking.latitude !== null &&
     booking.latitude !== undefined &&
     booking.latitude !== "";
-
 
   var hasLongitude =
     booking.longitude !== null &&
@@ -1148,11 +1090,9 @@ function showJob(
       );
 
 
-    navigateButton.href =
-      mapsUrl;
+    navigateButton.href = mapsUrl;
 
-    navigateButton.style.display =
-      "block";
+    navigateButton.style.display = "block";
 
   }
 
@@ -1170,11 +1110,9 @@ function showJob(
   }
 
 
-  acceptButton.style.display =
-    "block";
+  acceptButton.style.display = "block";
 
-  rejectButton.style.display =
-    "block";
+  rejectButton.style.display = "block";
 
 }
 
@@ -1186,16 +1124,11 @@ function showJob(
 async function loadBookings() {
 
   if (workerBusy) {
-
     return;
-
   }
 
-
   if (!currentUser) {
-
     return;
-
   }
 
 
@@ -1206,13 +1139,8 @@ async function loadBookings() {
 
 
     /*
-       IMPORTANT SECURITY FOUNDATION:
-
-       Customer name and phone are NOT
-       requested here.
-
-       Only basic job information is
-       loaded before acceptance.
+      Before acceptance:
+      only basic job information is requested.
     */
 
     var response =
@@ -1233,12 +1161,10 @@ async function loadBookings() {
 
           headers: {
 
-            "apikey":
-            SUPABASE_KEY,
+            "apikey": SUPABASE_KEY,
 
             "Authorization":
-            "Bearer " +
-            token
+              "Bearer " + token
 
           }
 
@@ -1259,7 +1185,6 @@ async function loadBookings() {
         errorText;
 
       return;
-
     }
 
 
@@ -1275,7 +1200,6 @@ async function loadBookings() {
       hideJob();
 
       return;
-
     }
 
 
@@ -1289,12 +1213,9 @@ async function loadBookings() {
     );
 
 
-    showJob(
-      booking
-    );
+    showJob(booking);
 
   }
-
 
   catch(error) {
 
@@ -1321,7 +1242,6 @@ async function acceptJob() {
       "No booking selected.";
 
     return;
-
   }
 
 
@@ -1331,19 +1251,17 @@ async function acceptJob() {
       "Please login again.";
 
     return;
-
   }
 
 
-  workerBusy =
-    true;
+  workerBusy = true;
 
+  acceptButton.disabled = true;
 
-  acceptButton.disabled =
-    true;
+  rejectButton.disabled = true;
 
-  rejectButton.disabled =
-    true;
+  status.innerText =
+    "⏳ Accepting job...";
 
 
   try {
@@ -1352,23 +1270,12 @@ async function acceptJob() {
       await getAccessToken();
 
 
-    /*
-       Record the authenticated
-       worker's UUID.
-
-       This is the key field that
-       future RLS policies will use.
-    */
-
     var response =
       await fetch(
 
         SUPABASE_URL +
-
         "/rest/v1/bookings?id=eq." +
-
         currentBookingId +
-
         "&worker_id=is.null",
 
         {
@@ -1377,68 +1284,122 @@ async function acceptJob() {
 
           headers: {
 
-            "apikey":
-            SUPABASE_KEY,
+            "apikey": SUPABASE_KEY,
 
             "Authorization":
-            "Bearer " +
-            token,
+              "Bearer " + token,
 
             "Content-Type":
-            "application/json",
+              "application/json",
+
+            /*
+              Ask Supabase to return
+              the updated row.
+            */
 
             "Prefer":
-            "return=minimal"
+              "return=representation"
 
           },
 
           body:
-          JSON.stringify({
+            JSON.stringify({
 
-            status:
-            "accepted",
+              status:
+                "accepted",
 
-            worker_id:
-            currentUser.id,
+              worker_id:
+                currentUser.id,
 
-            accepted_at:
-            new Date().toISOString()
+              accepted_at:
+                new Date().toISOString()
 
-          })
+            })
 
         }
 
       );
 
 
+    var responseText =
+      await response.text();
+
+
     if (!response.ok) {
 
-      var errorText =
-        await response.text();
+      workerBusy = false;
 
+      acceptButton.disabled = false;
 
-      workerBusy =
-        false;
-
-      acceptButton.disabled =
-        false;
-
-      rejectButton.disabled =
-        false;
-
+      rejectButton.disabled = false;
 
       status.innerText =
-        "Could not accept booking:\n" +
-        errorText;
+        "❌ Accept failed:\n" +
+        responseText;
 
       return;
+    }
+
+
+    var updatedRows = [];
+
+
+    if (responseText) {
+
+      try {
+
+        updatedRows =
+          JSON.parse(responseText);
+
+      }
+
+      catch(error) {
+
+        updatedRows = [];
+
+      }
 
     }
 
 
     /*
-       Job accepted successfully.
+      If RLS blocked the update,
+      Supabase may return an empty array.
     */
+
+    if (
+      !updatedRows ||
+      updatedRows.length === 0
+    ) {
+
+      workerBusy = false;
+
+      acceptButton.disabled = false;
+
+      rejectButton.disabled = false;
+
+      status.innerText =
+        "❌ Job was NOT accepted.\n\n" +
+        "Supabase did not update the booking.\n" +
+        "The worker UPDATE policy may not be matching.";
+
+      return;
+    }
+
+
+    /*
+      Local state
+    */
+
+    currentBooking.status =
+      "accepted";
+
+    currentBooking.worker_id =
+      currentUser.id;
+
+    currentBooking.accepted_at =
+      new Date().toISOString();
+
 
     newJobAlert.style.display =
       "none";
@@ -1450,29 +1411,28 @@ async function acceptJob() {
       "none";
 
 
-    /*
-       NOW request customer
-       contact information.
+    status.innerText =
+      "✅ Job accepted!\n\n" +
+      "Loading customer details...";
 
-       This is a separate request
-       after acceptance.
+
+    /*
+      Load customer contact only
+      AFTER successful acceptance.
     */
 
     var contactResponse =
       await fetch(
 
         SUPABASE_URL +
-
         "/rest/v1/bookings" +
 
         "?select=customer_name,customer_phone" +
 
         "&id=eq." +
-
         currentBookingId +
 
         "&worker_id=eq." +
-
         currentUser.id,
 
         {
@@ -1480,11 +1440,11 @@ async function acceptJob() {
           headers: {
 
             "apikey":
-            SUPABASE_KEY,
+              SUPABASE_KEY,
 
             "Authorization":
-            "Bearer " +
-            token
+              "Bearer " +
+              token
 
           }
 
@@ -1493,9 +1453,7 @@ async function acceptJob() {
       );
 
 
-    if (
-      contactResponse.ok
-    ) {
+    if (contactResponse.ok) {
 
       var contactRows =
         await contactResponse.json();
@@ -1517,13 +1475,18 @@ async function acceptJob() {
           currentBooking
         );
 
+
+        status.innerText =
+          "✅ Job accepted!\n\n" +
+          "Customer details unlocked.";
+
       }
 
       else {
 
         status.innerText =
           "✅ Job accepted!\n\n" +
-          "Customer contact is not available yet.";
+          "Customer contact is not available.";
 
       }
 
@@ -1553,28 +1516,18 @@ async function acceptJob() {
 
     }
 
-
-    status.innerText =
-      "✅ Job accepted!\n\n" +
-      "📍 Tap Navigate to reach the customer.";
-
   }
-
 
   catch(error) {
 
-    workerBusy =
-      false;
+    workerBusy = false;
 
-    acceptButton.disabled =
-      false;
+    acceptButton.disabled = false;
 
-    rejectButton.disabled =
-      false;
-
+    rejectButton.disabled = false;
 
     status.innerText =
-      "Connection error:\n" +
+      "❌ Accept error:\n" +
       error.message;
 
   }
@@ -1594,7 +1547,6 @@ async function rejectJob() {
       "No booking selected.";
 
     return;
-
   }
 
 
@@ -1604,15 +1556,15 @@ async function rejectJob() {
       "Please login again.";
 
     return;
-
   }
 
 
-  acceptButton.disabled =
-    true;
+  acceptButton.disabled = true;
 
-  rejectButton.disabled =
-    true;
+  rejectButton.disabled = true;
+
+  status.innerText =
+    "⏳ Rejecting job...";
 
 
   try {
@@ -1621,19 +1573,12 @@ async function rejectJob() {
       await getAccessToken();
 
 
-    /*
-       Only reject an unassigned job.
-    */
-
     var response =
       await fetch(
 
         SUPABASE_URL +
-
         "/rest/v1/bookings?id=eq." +
-
         currentBookingId +
-
         "&worker_id=is.null",
 
         {
@@ -1642,66 +1587,94 @@ async function rejectJob() {
 
           headers: {
 
-            "apikey":
-            SUPABASE_KEY,
+            "apikey": SUPABASE_KEY,
 
             "Authorization":
-            "Bearer " +
-            token,
+              "Bearer " + token,
 
             "Content-Type":
-            "application/json",
+              "application/json",
 
             "Prefer":
-            "return=minimal"
+              "return=representation"
 
           },
 
           body:
-          JSON.stringify({
+            JSON.stringify({
 
-            status:
-            "rejected"
+              status:
+                "rejected"
 
-          })
+            })
 
         }
 
       );
 
 
+    var responseText =
+      await response.text();
+
+
     if (!response.ok) {
 
-      var errorText =
-        await response.text();
+      acceptButton.disabled = false;
 
-
-      acceptButton.disabled =
-        false;
-
-      rejectButton.disabled =
-        false;
-
+      rejectButton.disabled = false;
 
       status.innerText =
-        "Could not reject booking:\n" +
-        errorText;
+        "❌ Reject failed:\n" +
+        responseText;
 
       return;
+    }
+
+
+    var updatedRows = [];
+
+
+    if (responseText) {
+
+      try {
+
+        updatedRows =
+          JSON.parse(responseText);
+
+      }
+
+      catch(error) {
+
+        updatedRows = [];
+
+      }
 
     }
 
 
-    status.innerText =
-      "❌ Job rejected.\n\n" +
-      "Waiting for another request...";
+    if (
+      !updatedRows ||
+      updatedRows.length === 0
+    ) {
+
+      acceptButton.disabled = false;
+
+      rejectButton.disabled = false;
+
+      status.innerText =
+        "❌ Job was NOT rejected.\n\n" +
+        "Supabase did not update the booking.\n" +
+        "The worker UPDATE policy may not be matching.";
+
+      return;
+    }
 
 
-    currentBookingId =
-      null;
+    currentBookingId = null;
 
-    currentBooking =
-      null;
+    currentBooking = null;
+
+    workerBusy = false;
 
 
     newJobAlert.style.display =
@@ -1724,15 +1697,14 @@ async function rejectJob() {
       "block";
 
 
-    acceptButton.disabled =
-      false;
+    acceptButton.disabled = false;
 
-    rejectButton.disabled =
-      false;
+    rejectButton.disabled = false;
 
 
-    workerBusy =
-      false;
+    status.innerText =
+      "❌ Job rejected.\n\n" +
+      "Waiting for another request...";
 
 
     setTimeout(
@@ -1742,18 +1714,14 @@ async function rejectJob() {
 
   }
 
-
   catch(error) {
 
-    acceptButton.disabled =
-      false;
+    acceptButton.disabled = false;
 
-    rejectButton.disabled =
-      false;
-
+    rejectButton.disabled = false;
 
     status.innerText =
-      "Connection error:\n" +
+      "❌ Reject error:\n" +
       error.message;
 
   }
@@ -1769,8 +1737,7 @@ async function requestNotificationPermission() {
 
   if (
     "Notification" in window &&
-    Notification.permission ===
-      "default"
+    Notification.permission === "default"
   ) {
 
     try {
@@ -1800,8 +1767,7 @@ async function requestNotificationPermission() {
 supabaseClient.auth.onAuthStateChange(
   function(event, session) {
 
-    currentSession =
-      session;
+    currentSession = session;
 
     currentUser =
       session
@@ -1809,9 +1775,7 @@ supabaseClient.auth.onAuthStateChange(
         : null;
 
 
-    if (
-      currentUser
-    ) {
+    if (currentUser) {
 
       showLoggedInWorker();
 
@@ -1876,6 +1840,10 @@ async function startWorkerApp() {
 
 }
 
+
+/* =================================
+   START APP
+   ================================= */
 
 requestNotificationPermission();
 
