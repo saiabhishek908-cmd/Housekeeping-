@@ -223,33 +223,52 @@
       color: #555;
     }
 
-    /* ACTION AREA */
+    /* =====================================================
+       ACCEPT / REJECT
+       Completely separate click zones
+       ===================================================== */
 
     .actionArea {
       display: none;
       margin-top: 20px;
+      width: 100%;
     }
 
-    .actionArea button {
+    .actionRow {
       width: 100%;
-      min-height: 58px;
+      display: block;
+      position: relative;
+      z-index: 20;
+    }
+
+    .actionButton {
+      appearance: none;
+      -webkit-appearance: none;
+      display: block;
+      width: 100%;
+      min-height: 60px;
       padding: 15px;
-      border: none;
+      border: 0;
       border-radius: 12px;
       font-size: 18px;
       font-weight: bold;
       cursor: pointer;
-      display: block;
+      position: relative;
+      z-index: 30;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      position: relative;
-      z-index: 10;
+      user-select: none;
+      -webkit-user-select: none;
+      pointer-events: auto;
     }
 
     .accept {
       background: #111;
       color: white;
-      margin-bottom: 14px;
+    }
+
+    .rejectWrapper {
+      margin-top: 14px;
     }
 
     .reject {
@@ -257,12 +276,10 @@
       color: #111;
     }
 
-    .actionArea button:disabled {
-      opacity: 0.6;
+    .actionButton:disabled {
+      opacity: 0.55;
       cursor: not-allowed;
     }
-
-    /* SMALL HELP TEXT */
 
     .actionHint {
       text-align: center;
@@ -440,28 +457,53 @@
       </div>
 
 
-      <!-- ACCEPT / REJECT -->
+      <!-- =================================================
+           ACTIONS
+           Each button has its OWN separate wrapper.
+           ================================================= -->
 
       <div
         id="actionArea"
         class="actionArea"
       >
 
-        <button
-          type="button"
-          id="acceptButton"
-          class="accept"
-        >
-          ✅ ACCEPT JOB
-        </button>
+        <!-- ACCEPT ZONE -->
 
-        <button
-          type="button"
-          id="rejectButton"
-          class="reject"
+        <div
+          id="acceptZone"
+          class="actionRow"
         >
-          ❌ REJECT JOB
-        </button>
+
+          <button
+            type="button"
+            id="acceptButton"
+            class="actionButton accept"
+            onclick="handleAcceptClick(event)"
+          >
+            ✅ ACCEPT JOB
+          </button>
+
+        </div>
+
+
+        <!-- REJECT ZONE -->
+
+        <div
+          id="rejectZone"
+          class="actionRow rejectWrapper"
+        >
+
+          <button
+            type="button"
+            id="rejectButton"
+            class="actionButton reject"
+            onclick="handleRejectClick(event)"
+          >
+            ❌ REJECT JOB
+          </button>
+
+        </div>
+
 
         <div class="actionHint">
           Accept to receive customer contact details.
@@ -484,9 +526,9 @@
 
 <script>
 
-/* =================================
+/* =====================================================
    SUPABASE CONFIG
-   ================================= */
+   ===================================================== */
 
 var SUPABASE_URL =
   "https://yrbhxouodsfsxryaducn.supabase.co";
@@ -495,9 +537,9 @@ var SUPABASE_KEY =
   "sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
 
 
-/* =================================
+/* =====================================================
    SUPABASE CLIENT
-   ================================= */
+   ===================================================== */
 
 var supabaseClient =
   window.supabase.createClient(
@@ -506,9 +548,9 @@ var supabaseClient =
   );
 
 
-/* =================================
+/* =====================================================
    STATE
-   ================================= */
+   ===================================================== */
 
 var currentUser = null;
 var currentSession = null;
@@ -521,9 +563,9 @@ var lastSeenBookingId = null;
 var workerBusy = false;
 
 
-/* =================================
+/* =====================================================
    ELEMENTS
-   ================================= */
+   ===================================================== */
 
 var loginBox =
   document.getElementById("loginBox");
@@ -550,94 +592,59 @@ var loginStatus =
   document.getElementById("loginStatus");
 
 var workerEmailDisplay =
-  document.getElementById(
-    "workerEmailDisplay"
-  );
+  document.getElementById("workerEmailDisplay");
 
 var workerIdDisplay =
-  document.getElementById(
-    "workerIdDisplay"
-  );
+  document.getElementById("workerIdDisplay");
 
 var bookingDetails =
-  document.getElementById(
-    "bookingDetails"
-  );
+  document.getElementById("bookingDetails");
 
 var coordinates =
-  document.getElementById(
-    "coordinates"
-  );
+  document.getElementById("coordinates");
 
 var navigateButton =
-  document.getElementById(
-    "navigateButton"
-  );
+  document.getElementById("navigateButton");
 
 var actionArea =
-  document.getElementById(
-    "actionArea"
-  );
+  document.getElementById("actionArea");
 
 var acceptButton =
-  document.getElementById(
-    "acceptButton"
-  );
+  document.getElementById("acceptButton");
 
 var rejectButton =
-  document.getElementById(
-    "rejectButton"
-  );
+  document.getElementById("rejectButton");
 
 var status =
-  document.getElementById(
-    "status"
-  );
+  document.getElementById("status");
 
 var newJobAlert =
-  document.getElementById(
-    "newJobAlert"
-  );
+  document.getElementById("newJobAlert");
 
 var waitingMessage =
-  document.getElementById(
-    "waitingMessage"
-  );
+  document.getElementById("waitingMessage");
 
 var contactSection =
-  document.getElementById(
-    "contactSection"
-  );
+  document.getElementById("contactSection");
 
 var contactInfo =
-  document.getElementById(
-    "contactInfo"
-  );
+  document.getElementById("contactInfo");
 
 var callButton =
-  document.getElementById(
-    "callButton"
-  );
+  document.getElementById("callButton");
 
 var whatsappButton =
-  document.getElementById(
-    "whatsappButton"
-  );
+  document.getElementById("whatsappButton");
 
 
-/* =================================
-   LOGIN BUTTON
-   ================================= */
+/* =====================================================
+   LOGIN / LOGOUT
+   ===================================================== */
 
 loginButton.addEventListener(
   "click",
   loginWorker
 );
-
-
-/* =================================
-   LOGOUT BUTTON
-   ================================= */
 
 logoutButton.addEventListener(
   "click",
@@ -645,51 +652,77 @@ logoutButton.addEventListener(
 );
 
 
-/* =================================
-   ACCEPT BUTTON
-   ================================= */
+/* =====================================================
+   ACCEPT CLICK
+   ===================================================== */
 
-acceptButton.addEventListener(
-  "click",
-  function () {
+function handleAcceptClick(event) {
 
-    if (workerBusy) {
-      return;
-    }
+  /*
+    Stop this tap here.
+    It cannot bubble into another element.
+  */
 
-    status.innerText =
-      "⏳ Accept button clicked...";
+  if (event) {
 
-    acceptJob();
-
-  }
-);
-
-
-/* =================================
-   REJECT BUTTON
-   ================================= */
-
-rejectButton.addEventListener(
-  "click",
-  function () {
-
-    if (workerBusy) {
-      return;
-    }
-
-    status.innerText =
-      "⏳ Reject button clicked...";
-
-    rejectJob();
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
 
   }
-);
 
 
-/* =================================
+  /*
+    Very important diagnostic:
+    If you see this message, ONLY the Accept
+    button received the tap.
+  */
+
+  status.innerText =
+    "🟢 ACCEPT TAP RECEIVED";
+
+  acceptJob();
+
+}
+
+
+/* =====================================================
+   REJECT CLICK
+   ===================================================== */
+
+function handleRejectClick(event) {
+
+  /*
+    Stop this tap here.
+    It cannot bubble into another element.
+  */
+
+  if (event) {
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+  }
+
+
+  /*
+    Very important diagnostic:
+    If you see this message, ONLY the Reject
+    button received the tap.
+  */
+
+  status.innerText =
+    "🔴 REJECT TAP RECEIVED";
+
+  rejectJob();
+
+}
+
+
+/* =====================================================
    LOGIN
-   ================================= */
+   ===================================================== */
 
 async function loginWorker() {
 
@@ -706,10 +739,12 @@ async function loginWorker() {
       "Please enter email and password.";
 
     return;
+
   }
 
 
-  loginButton.disabled = true;
+  loginButton.disabled =
+    true;
 
   loginStatus.innerText =
     "Logging in...";
@@ -721,7 +756,6 @@ async function loginWorker() {
       await supabaseClient.auth.signInWithPassword({
 
         email: email,
-
         password: password
 
       });
@@ -733,9 +767,11 @@ async function loginWorker() {
         "Login failed:\n" +
         result.error.message;
 
-      loginButton.disabled = false;
+      loginButton.disabled =
+        false;
 
       return;
+
     }
 
 
@@ -756,16 +792,17 @@ async function loginWorker() {
       "Login error:\n" +
       error.message;
 
-    loginButton.disabled = false;
+    loginButton.disabled =
+      false;
 
   }
 
 }
 
 
-/* =================================
-   SHOW WORKER
-   ================================= */
+/* =====================================================
+   SHOW LOGGED-IN WORKER
+   ===================================================== */
 
 function showLoggedInWorker() {
 
@@ -804,9 +841,9 @@ function showLoggedInWorker() {
 }
 
 
-/* =================================
+/* =====================================================
    LOGOUT
-   ================================= */
+   ===================================================== */
 
 async function logoutWorker() {
 
@@ -858,9 +895,9 @@ async function logoutWorker() {
 }
 
 
-/* =================================
+/* =====================================================
    ACCESS TOKEN
-   ================================= */
+   ===================================================== */
 
 async function getAccessToken() {
 
@@ -898,9 +935,9 @@ async function getAccessToken() {
 }
 
 
-/* =================================
+/* =====================================================
    HIDE JOB
-   ================================= */
+   ===================================================== */
 
 function hideJob() {
 
@@ -937,9 +974,9 @@ function hideJob() {
 }
 
 
-/* =================================
+/* =====================================================
    HIDE CONTACT
-   ================================= */
+   ===================================================== */
 
 function hideCustomerContact() {
 
@@ -958,9 +995,9 @@ function hideCustomerContact() {
 }
 
 
-/* =================================
+/* =====================================================
    SHOW CONTACT
-   ================================= */
+   ===================================================== */
 
 function showCustomerContact(
   booking
@@ -994,6 +1031,7 @@ function showCustomerContact(
       "none";
 
     return;
+
   }
 
 
@@ -1040,9 +1078,9 @@ function showCustomerContact(
 }
 
 
-/* =================================
+/* =====================================================
    NEW BOOKING ALERT
-   ================================= */
+   ===================================================== */
 
 function alertNewBooking(
   booking
@@ -1097,9 +1135,9 @@ function alertNewBooking(
 }
 
 
-/* =================================
+/* =====================================================
    SHOW JOB
-   ================================= */
+   ===================================================== */
 
 function showJob(
   booking
@@ -1182,13 +1220,10 @@ function showJob(
     coordinates.innerHTML =
 
       "<div class='coordinates'>" +
-
       "<strong>Customer GPS:</strong><br>" +
-
       booking.latitude +
       ", " +
       booking.longitude +
-
       "</div>";
 
 
@@ -1220,9 +1255,7 @@ function showJob(
 
 
   /*
-    IMPORTANT:
-    Accept and Reject live inside
-    one dedicated action area.
+    SHOW ACTION AREA.
   */
 
   actionArea.style.display =
@@ -1238,9 +1271,9 @@ function showJob(
 }
 
 
-/* =================================
+/* =====================================================
    LOAD PENDING BOOKING
-   ================================= */
+   ===================================================== */
 
 async function loadBookings() {
 
@@ -1303,6 +1336,7 @@ async function loadBookings() {
         errorText;
 
       return;
+
     }
 
 
@@ -1318,6 +1352,7 @@ async function loadBookings() {
       hideJob();
 
       return;
+
     }
 
 
@@ -1340,9 +1375,9 @@ async function loadBookings() {
 }
 
 
-/* =================================
+/* =====================================================
    ACCEPT JOB
-   ================================= */
+   ===================================================== */
 
 async function acceptJob() {
 
@@ -1357,6 +1392,7 @@ async function acceptJob() {
       "No booking selected.";
 
     return;
+
   }
 
 
@@ -1366,6 +1402,7 @@ async function acceptJob() {
       "Please login again.";
 
     return;
+
   }
 
 
@@ -1457,6 +1494,7 @@ async function acceptJob() {
         responseText;
 
       return;
+
     }
 
 
@@ -1485,6 +1523,7 @@ async function acceptJob() {
         "Supabase did not update the booking.";
 
       return;
+
     }
 
 
@@ -1608,9 +1647,9 @@ async function acceptJob() {
 }
 
 
-/* =================================
+/* =====================================================
    REJECT JOB
-   ================================= */
+   ===================================================== */
 
 async function rejectJob() {
 
@@ -1625,6 +1664,7 @@ async function rejectJob() {
       "No booking selected.";
 
     return;
+
   }
 
 
@@ -1634,6 +1674,7 @@ async function rejectJob() {
       "Please login again.";
 
     return;
+
   }
 
 
@@ -1719,6 +1760,7 @@ async function rejectJob() {
         responseText;
 
       return;
+
     }
 
 
@@ -1747,6 +1789,7 @@ async function rejectJob() {
         "Supabase did not update the booking.";
 
       return;
+
     }
 
 
@@ -1808,9 +1851,9 @@ async function rejectJob() {
 }
 
 
-/* =================================
+/* =====================================================
    NOTIFICATIONS
-   ================================= */
+   ===================================================== */
 
 async function requestNotificationPermission() {
 
@@ -1832,9 +1875,9 @@ async function requestNotificationPermission() {
 }
 
 
-/* =================================
+/* =====================================================
    AUTH STATE
-   ================================= */
+   ===================================================== */
 
 supabaseClient.auth.onAuthStateChange(
   function(event, session) {
@@ -1858,9 +1901,9 @@ supabaseClient.auth.onAuthStateChange(
 );
 
 
-/* =================================
+/* =====================================================
    START
-   ================================= */
+   ===================================================== */
 
 async function startWorkerApp() {
 
@@ -1919,9 +1962,9 @@ requestNotificationPermission();
 startWorkerApp();
 
 
-/* =================================
+/* =====================================================
    POLLING
-   ================================= */
+   ===================================================== */
 
 setInterval(
   loadBookings,
