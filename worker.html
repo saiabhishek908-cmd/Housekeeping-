@@ -10,10 +10,13 @@
 
   <title>HouseKeep Worker</title>
 
-  <!-- Supabase JavaScript client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       font-family: Arial, sans-serif;
@@ -27,7 +30,6 @@
       background: white;
       min-height: 100vh;
       padding: 25px;
-      box-sizing: border-box;
     }
 
     h1 {
@@ -42,6 +44,8 @@
       color: #666;
     }
 
+    /* LOGIN */
+
     .loginBox {
       padding: 20px;
       background: #f5f5f5;
@@ -52,19 +56,17 @@
     .loginInput {
       width: 100%;
       padding: 14px;
-      box-sizing: border-box;
       margin-top: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 16px;
     }
 
-    .loginButton {
+    .loginButton,
+    .logoutButton {
       width: 100%;
       padding: 14px;
       margin-top: 10px;
-      background: #111;
-      color: white;
       border: none;
       border-radius: 8px;
       font-size: 16px;
@@ -72,21 +74,18 @@
       cursor: pointer;
     }
 
-    .loginButton:disabled {
-      opacity: 0.6;
+    .loginButton {
+      background: #111;
+      color: white;
     }
 
     .logoutButton {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
       background: #eee;
       color: #111;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
+    }
+
+    .loginButton:disabled {
+      opacity: 0.6;
     }
 
     .loginStatus {
@@ -95,6 +94,8 @@
       white-space: pre-line;
       font-size: 14px;
     }
+
+    /* WORKER INFO */
 
     .workerInfo {
       display: none;
@@ -105,6 +106,8 @@
       font-size: 14px;
       color: #333;
     }
+
+    /* BOOKING */
 
     .booking {
       border: 1px solid #ddd;
@@ -136,45 +139,36 @@
       white-space: pre-line;
     }
 
-    button,
-    .navigate,
-    .contactButton {
-      width: 100%;
+    .loading {
+      color: #666;
+    }
+
+    .waiting {
       padding: 15px;
-      border: none;
+      background: #f5f5f5;
       border-radius: 10px;
-      font-size: 17px;
-      font-weight: bold;
-      margin-top: 10px;
-      box-sizing: border-box;
+      margin-top: 20px;
+      text-align: center;
+      color: #666;
     }
 
-    button {
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .accept {
-      background: #111;
-      color: white;
-    }
-
-    .reject {
-      background: #eee;
-      color: #111;
-    }
+    /* NAVIGATION */
 
     .navigate {
+      width: 100%;
+      padding: 15px;
+      margin-top: 12px;
+      border-radius: 10px;
       background: #1a73e8;
       color: white;
       text-decoration: none;
       display: none;
       text-align: center;
+      font-size: 17px;
+      font-weight: bold;
     }
+
+    /* CONTACT */
 
     .contactSection {
       display: none;
@@ -196,21 +190,29 @@
       color: #333;
     }
 
-    .callButton {
-      background: #168a3a;
-      color: white;
+    .contactButton {
+      width: 100%;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: bold;
       text-decoration: none;
       display: block;
       text-align: center;
     }
 
+    .callButton {
+      background: #168a3a;
+      color: white;
+    }
+
     .whatsappButton {
       background: #25d366;
       color: white;
-      text-decoration: none;
-      display: block;
-      text-align: center;
     }
+
+    /* GPS */
 
     .coordinates {
       margin-top: 12px;
@@ -221,17 +223,52 @@
       color: #555;
     }
 
-    .loading {
-      color: #666;
+    /* ACTION AREA */
+
+    .actionArea {
+      display: none;
+      margin-top: 20px;
     }
 
-    .waiting {
+    .actionArea button {
+      width: 100%;
+      min-height: 58px;
       padding: 15px;
-      background: #f5f5f5;
-      border-radius: 10px;
-      margin-top: 20px;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      display: block;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      z-index: 10;
+    }
+
+    .accept {
+      background: #111;
+      color: white;
+      margin-bottom: 14px;
+    }
+
+    .reject {
+      background: #eeeeee;
+      color: #111;
+    }
+
+    .actionArea button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* SMALL HELP TEXT */
+
+    .actionHint {
       text-align: center;
-      color: #666;
+      color: #777;
+      font-size: 13px;
+      margin-top: 12px;
     }
 
     .hidden {
@@ -250,9 +287,7 @@
   <p>Worker dashboard</p>
 
 
-  <!-- =================================
-       WORKER LOGIN
-       ================================= -->
+  <!-- LOGIN -->
 
   <div
     id="loginBox"
@@ -278,9 +313,9 @@
     >
 
     <button
+      type="button"
       id="loginButton"
       class="loginButton"
-      onclick="loginWorker()"
     >
       🔐 Login
     </button>
@@ -293,9 +328,7 @@
   </div>
 
 
-  <!-- =================================
-       LOGGED-IN WORKER INFO
-       ================================= -->
+  <!-- WORKER INFO -->
 
   <div
     id="workerInfo"
@@ -311,8 +344,9 @@
     <span id="workerIdDisplay"></span>
 
     <button
+      type="button"
+      id="logoutButton"
       class="logoutButton"
-      onclick="logoutWorker()"
     >
       Logout
     </button>
@@ -320,9 +354,7 @@
   </div>
 
 
-  <!-- =================================
-       WORKER APP
-       ================================= -->
+  <!-- WORKER APP -->
 
   <div
     id="workerApp"
@@ -360,9 +392,7 @@
       <div id="coordinates"></div>
 
 
-      <!-- =================================
-           NAVIGATION
-           ================================= -->
+      <!-- NAVIGATION -->
 
       <a
         id="navigateButton"
@@ -374,10 +404,7 @@
       </a>
 
 
-      <!-- =================================
-           CUSTOMER CONTACT
-           Hidden until acceptance
-           ================================= -->
+      <!-- CUSTOMER CONTACT -->
 
       <div
         id="contactSection"
@@ -413,27 +440,34 @@
       </div>
 
 
-      <!-- =================================
-           ACCEPT / REJECT
-           ================================= -->
+      <!-- ACCEPT / REJECT -->
 
-      <button
-  type="button"
-  id="acceptButton"
-  class="accept"
-  style="display: none;"
->
-  ✅ Accept Job
-</button>
+      <div
+        id="actionArea"
+        class="actionArea"
+      >
 
-<button
-  type="button"
-  id="rejectButton"
-  class="reject"
-  style="display: none;"
->
-  ❌ Reject
-</button>
+        <button
+          type="button"
+          id="acceptButton"
+          class="accept"
+        >
+          ✅ ACCEPT JOB
+        </button>
+
+        <button
+          type="button"
+          id="rejectButton"
+          class="reject"
+        >
+          ❌ REJECT JOB
+        </button>
+
+        <div class="actionHint">
+          Accept to receive customer contact details.
+        </div>
+
+      </div>
 
 
       <div
@@ -473,20 +507,13 @@ var supabaseClient =
 
 
 /* =================================
-   AUTH STATE
+   STATE
    ================================= */
 
 var currentUser = null;
-
 var currentSession = null;
 
-
-/* =================================
-   CURRENT BOOKING
-   ================================= */
-
 var currentBookingId = null;
-
 var currentBooking = null;
 
 var lastSeenBookingId = null;
@@ -516,6 +543,9 @@ var workerPassword =
 var loginButton =
   document.getElementById("loginButton");
 
+var logoutButton =
+  document.getElementById("logoutButton");
+
 var loginStatus =
   document.getElementById("loginStatus");
 
@@ -542,6 +572,11 @@ var coordinates =
 var navigateButton =
   document.getElementById(
     "navigateButton"
+  );
+
+var actionArea =
+  document.getElementById(
+    "actionArea"
   );
 
 var acceptButton =
@@ -589,15 +624,69 @@ var whatsappButton =
     "whatsappButton"
   );
 
-acceptButton.addEventListener("click", function () {
-  status.innerText = "⏳ Accept button clicked...";
-  acceptJob();
-});
 
-rejectButton.addEventListener("click", function () {
-  status.innerText = "⏳ Reject button clicked...";
-  rejectJob();
-});
+/* =================================
+   LOGIN BUTTON
+   ================================= */
+
+loginButton.addEventListener(
+  "click",
+  loginWorker
+);
+
+
+/* =================================
+   LOGOUT BUTTON
+   ================================= */
+
+logoutButton.addEventListener(
+  "click",
+  logoutWorker
+);
+
+
+/* =================================
+   ACCEPT BUTTON
+   ================================= */
+
+acceptButton.addEventListener(
+  "click",
+  function () {
+
+    if (workerBusy) {
+      return;
+    }
+
+    status.innerText =
+      "⏳ Accept button clicked...";
+
+    acceptJob();
+
+  }
+);
+
+
+/* =================================
+   REJECT BUTTON
+   ================================= */
+
+rejectButton.addEventListener(
+  "click",
+  function () {
+
+    if (workerBusy) {
+      return;
+    }
+
+    status.innerText =
+      "⏳ Reject button clicked...";
+
+    rejectJob();
+
+  }
+);
+
+
 /* =================================
    LOGIN
    ================================= */
@@ -668,13 +757,14 @@ async function loginWorker() {
       error.message;
 
     loginButton.disabled = false;
+
   }
 
 }
 
 
 /* =================================
-   SHOW LOGGED-IN WORKER
+   SHOW WORKER
    ================================= */
 
 function showLoggedInWorker() {
@@ -684,11 +774,15 @@ function showLoggedInWorker() {
   }
 
 
-  loginBox.style.display = "none";
+  loginBox.style.display =
+    "none";
 
-  workerInfo.style.display = "block";
+  workerInfo.style.display =
+    "block";
 
-  workerApp.classList.remove("hidden");
+  workerApp.classList.remove(
+    "hidden"
+  );
 
 
   workerEmailDisplay.innerText =
@@ -698,9 +792,11 @@ function showLoggedInWorker() {
     currentUser.id;
 
 
-  loginStatus.innerText = "";
+  loginStatus.innerText =
+    "";
 
-  loginButton.disabled = false;
+  loginButton.disabled =
+    false;
 
 
   loadBookings();
@@ -731,26 +827,31 @@ async function logoutWorker() {
 
 
   currentUser = null;
-
   currentSession = null;
 
   workerBusy = false;
 
   currentBooking = null;
-
   currentBookingId = null;
 
 
-  workerInfo.style.display = "none";
+  workerInfo.style.display =
+    "none";
 
-  workerApp.classList.add("hidden");
+  workerApp.classList.add(
+    "hidden"
+  );
 
-  loginBox.style.display = "block";
+  loginBox.style.display =
+    "block";
 
 
-  workerPassword.value = "";
+  workerPassword.value =
+    "";
 
-  loginStatus.innerText = "Logged out.";
+  loginStatus.innerText =
+    "Logged out.";
+
 
   hideJob();
 
@@ -758,7 +859,7 @@ async function logoutWorker() {
 
 
 /* =================================
-   AUTH TOKEN
+   ACCESS TOKEN
    ================================= */
 
 async function getAccessToken() {
@@ -785,9 +886,11 @@ async function getAccessToken() {
   }
 
 
-  currentSession = session;
+  currentSession =
+    session;
 
-  currentUser = session.user;
+  currentUser =
+    session.user;
 
 
   return session.access_token;
@@ -804,48 +907,59 @@ function hideJob() {
   bookingDetails.innerText =
     "No new bookings.";
 
-  coordinates.innerHTML = "";
+  coordinates.innerHTML =
+    "";
 
-  navigateButton.style.display = "none";
+  navigateButton.style.display =
+    "none";
 
-  acceptButton.style.display = "none";
+  actionArea.style.display =
+    "none";
 
-  rejectButton.style.display = "none";
+  contactSection.style.display =
+    "none";
 
-  newJobAlert.style.display = "none";
+  contactInfo.innerHTML =
+    "";
 
-  contactSection.style.display = "none";
+  callButton.href =
+    "#";
 
-  contactInfo.innerHTML = "";
+  whatsappButton.href =
+    "#";
 
-  callButton.href = "#";
+  newJobAlert.style.display =
+    "none";
 
-  whatsappButton.href = "#";
-
-  waitingMessage.style.display = "block";
+  waitingMessage.style.display =
+    "block";
 
 }
 
 
 /* =================================
-   HIDE CUSTOMER CONTACT
+   HIDE CONTACT
    ================================= */
 
 function hideCustomerContact() {
 
-  contactSection.style.display = "none";
+  contactSection.style.display =
+    "none";
 
-  contactInfo.innerHTML = "";
+  contactInfo.innerHTML =
+    "";
 
-  callButton.href = "#";
+  callButton.href =
+    "#";
 
-  whatsappButton.href = "#";
+  whatsappButton.href =
+    "#";
 
 }
 
 
 /* =================================
-   SHOW CUSTOMER CONTACT
+   SHOW CONTACT
    ================================= */
 
 function showCustomerContact(
@@ -861,10 +975,11 @@ function showCustomerContact(
     "";
 
 
-  if (!customerPhone) {
+  contactSection.style.display =
+    "block";
 
-    contactSection.style.display =
-      "block";
+
+  if (!customerPhone) {
 
     contactInfo.innerHTML =
       "<strong>Name:</strong> " +
@@ -872,16 +987,14 @@ function showCustomerContact(
       "<br><br>" +
       "Phone number not available.";
 
-    callButton.style.display = "none";
+    callButton.style.display =
+      "none";
 
-    whatsappButton.style.display = "none";
+    whatsappButton.style.display =
+      "none";
 
     return;
   }
-
-
-  contactSection.style.display =
-    "block";
 
 
   contactInfo.innerHTML =
@@ -895,7 +1008,8 @@ function showCustomerContact(
   callButton.href =
     "tel:" + customerPhone;
 
-  callButton.style.display = "block";
+  callButton.style.display =
+    "block";
 
 
   var whatsappNumber =
@@ -950,14 +1064,7 @@ function alertNewBooking(
 
     }
 
-    catch(error) {
-
-      console.log(
-        "Vibration unavailable:",
-        error
-      );
-
-    }
+    catch(error) {}
 
   }
 
@@ -983,14 +1090,7 @@ function alertNewBooking(
 
     }
 
-    catch(error) {
-
-      console.log(
-        "Notification error:",
-        error
-      );
-
-    }
+    catch(error) {}
 
   }
 
@@ -1005,9 +1105,11 @@ function showJob(
   booking
 ) {
 
-  currentBooking = booking;
+  currentBooking =
+    booking;
 
-  currentBookingId = booking.id;
+  currentBookingId =
+    booking.id;
 
 
   waitingMessage.style.display =
@@ -1022,7 +1124,9 @@ function showJob(
     lastSeenBookingId =
       booking.id;
 
-    alertNewBooking(booking);
+    alertNewBooking(
+      booking
+    );
 
   }
 
@@ -1031,19 +1135,23 @@ function showJob(
 
     "<strong>Location:</strong> " +
     booking.location +
+
     "<br><br>" +
 
     "<strong>Service:</strong> " +
     booking.service +
+
     "<br><br>" +
 
     "<strong>Duration:</strong> " +
     booking.hours +
     " hour(s)" +
+
     "<br><br>" +
 
     "<strong>Housekeepers:</strong> " +
     booking.workers +
+
     "<br><br>" +
 
     "<div class='price'>" +
@@ -1051,11 +1159,6 @@ function showJob(
     booking.price +
     "</div>";
 
-
-  /*
-    Customer contact is deliberately
-    NOT requested before acceptance.
-  */
 
   hideCustomerContact();
 
@@ -1089,7 +1192,7 @@ function showJob(
       "</div>";
 
 
-    var mapsUrl =
+    navigateButton.href =
       "https://www.google.com/maps/dir/?api=1&destination=" +
       encodeURIComponent(
         booking.latitude +
@@ -1098,16 +1201,14 @@ function showJob(
       );
 
 
-    navigateButton.href = mapsUrl;
-
-    navigateButton.style.display = "block";
+    navigateButton.style.display =
+      "block";
 
   }
 
   else {
 
     coordinates.innerHTML =
-
       "<div class='coordinates'>" +
       "Customer GPS location not available." +
       "</div>";
@@ -1118,9 +1219,21 @@ function showJob(
   }
 
 
-  acceptButton.style.display = "block";
+  /*
+    IMPORTANT:
+    Accept and Reject live inside
+    one dedicated action area.
+  */
 
-  rejectButton.style.display = "block";
+  actionArea.style.display =
+    "block";
+
+
+  acceptButton.disabled =
+    false;
+
+  rejectButton.disabled =
+    false;
 
 }
 
@@ -1146,11 +1259,6 @@ async function loadBookings() {
       await getAccessToken();
 
 
-    /*
-      Before acceptance:
-      only basic job information is requested.
-    */
-
     var response =
       await fetch(
 
@@ -1169,10 +1277,12 @@ async function loadBookings() {
 
           headers: {
 
-            "apikey": SUPABASE_KEY,
+            "apikey":
+              SUPABASE_KEY,
 
             "Authorization":
-              "Bearer " + token
+              "Bearer " +
+              token
 
           }
 
@@ -1211,17 +1321,9 @@ async function loadBookings() {
     }
 
 
-    var booking =
-      bookings[0];
-
-
-    console.log(
-      "WORKER BOOKING:",
-      booking
+    showJob(
+      bookings[0]
     );
-
-
-    showJob(booking);
 
   }
 
@@ -1244,6 +1346,11 @@ async function loadBookings() {
 
 async function acceptJob() {
 
+  if (workerBusy) {
+    return;
+  }
+
+
   if (!currentBookingId) {
 
     status.innerText =
@@ -1262,11 +1369,15 @@ async function acceptJob() {
   }
 
 
-  workerBusy = true;
+  workerBusy =
+    true;
 
-  acceptButton.disabled = true;
+  acceptButton.disabled =
+    true;
 
-  rejectButton.disabled = true;
+  rejectButton.disabled =
+    true;
+
 
   status.innerText =
     "⏳ Accepting job...";
@@ -1292,18 +1403,15 @@ async function acceptJob() {
 
           headers: {
 
-            "apikey": SUPABASE_KEY,
+            "apikey":
+              SUPABASE_KEY,
 
             "Authorization":
-              "Bearer " + token,
+              "Bearer " +
+              token,
 
             "Content-Type":
               "application/json",
-
-            /*
-              Ask Supabase to return
-              the updated row.
-            */
 
             "Prefer":
               "return=representation"
@@ -1335,11 +1443,14 @@ async function acceptJob() {
 
     if (!response.ok) {
 
-      workerBusy = false;
+      workerBusy =
+        false;
 
-      acceptButton.disabled = false;
+      acceptButton.disabled =
+        false;
 
-      rejectButton.disabled = false;
+      rejectButton.disabled =
+        false;
 
       status.innerText =
         "❌ Accept failed:\n" +
@@ -1349,55 +1460,33 @@ async function acceptJob() {
     }
 
 
-    var updatedRows = [];
+    var updatedRows =
+      responseText
+        ? JSON.parse(responseText)
+        : [];
 
-
-    if (responseText) {
-
-      try {
-
-        updatedRows =
-          JSON.parse(responseText);
-
-      }
-
-      catch(error) {
-
-        updatedRows = [];
-
-      }
-
-    }
-
-
-    /*
-      If RLS blocked the update,
-      Supabase may return an empty array.
-    */
 
     if (
       !updatedRows ||
       updatedRows.length === 0
     ) {
 
-      workerBusy = false;
+      workerBusy =
+        false;
 
-      acceptButton.disabled = false;
+      acceptButton.disabled =
+        false;
 
-      rejectButton.disabled = false;
+      rejectButton.disabled =
+        false;
 
       status.innerText =
         "❌ Job was NOT accepted.\n\n" +
-        "Supabase did not update the booking.\n" +
-        "The worker UPDATE policy may not be matching.";
+        "Supabase did not update the booking.";
 
       return;
     }
 
-
-    /*
-      Local state
-    */
 
     currentBooking.status =
       "accepted";
@@ -1405,17 +1494,11 @@ async function acceptJob() {
     currentBooking.worker_id =
       currentUser.id;
 
-    currentBooking.accepted_at =
-      new Date().toISOString();
 
+    actionArea.style.display =
+      "none";
 
     newJobAlert.style.display =
-      "none";
-
-    acceptButton.style.display =
-      "none";
-
-    rejectButton.style.display =
       "none";
 
 
@@ -1423,11 +1506,6 @@ async function acceptJob() {
       "✅ Job accepted!\n\n" +
       "Loading customer details...";
 
-
-    /*
-      Load customer contact only
-      AFTER successful acceptance.
-    */
 
     var contactResponse =
       await fetch(
@@ -1508,31 +1586,18 @@ async function acceptJob() {
 
     }
 
-
-    if (
-      currentBooking &&
-      currentBooking.latitude !== null &&
-      currentBooking.latitude !== undefined &&
-      currentBooking.latitude !== "" &&
-      currentBooking.longitude !== null &&
-      currentBooking.longitude !== undefined &&
-      currentBooking.longitude !== ""
-    ) {
-
-      navigateButton.style.display =
-        "block";
-
-    }
-
   }
 
   catch(error) {
 
-    workerBusy = false;
+    workerBusy =
+      false;
 
-    acceptButton.disabled = false;
+    acceptButton.disabled =
+      false;
 
-    rejectButton.disabled = false;
+    rejectButton.disabled =
+      false;
 
     status.innerText =
       "❌ Accept error:\n" +
@@ -1548,6 +1613,11 @@ async function acceptJob() {
    ================================= */
 
 async function rejectJob() {
+
+  if (workerBusy) {
+    return;
+  }
+
 
   if (!currentBookingId) {
 
@@ -1567,9 +1637,15 @@ async function rejectJob() {
   }
 
 
-  acceptButton.disabled = true;
+  workerBusy =
+    true;
 
-  rejectButton.disabled = true;
+  acceptButton.disabled =
+    true;
+
+  rejectButton.disabled =
+    true;
+
 
   status.innerText =
     "⏳ Rejecting job...";
@@ -1595,10 +1671,12 @@ async function rejectJob() {
 
           headers: {
 
-            "apikey": SUPABASE_KEY,
+            "apikey":
+              SUPABASE_KEY,
 
             "Authorization":
-              "Bearer " + token,
+              "Bearer " +
+              token,
 
             "Content-Type":
               "application/json",
@@ -1627,9 +1705,14 @@ async function rejectJob() {
 
     if (!response.ok) {
 
-      acceptButton.disabled = false;
+      workerBusy =
+        false;
 
-      rejectButton.disabled = false;
+      acceptButton.disabled =
+        false;
+
+      rejectButton.disabled =
+        false;
 
       status.innerText =
         "❌ Reject failed:\n" +
@@ -1639,25 +1722,10 @@ async function rejectJob() {
     }
 
 
-    var updatedRows = [];
-
-
-    if (responseText) {
-
-      try {
-
-        updatedRows =
-          JSON.parse(responseText);
-
-      }
-
-      catch(error) {
-
-        updatedRows = [];
-
-      }
-
-    }
+    var updatedRows =
+      responseText
+        ? JSON.parse(responseText)
+        : [];
 
 
     if (
@@ -1665,49 +1733,47 @@ async function rejectJob() {
       updatedRows.length === 0
     ) {
 
-      acceptButton.disabled = false;
+      workerBusy =
+        false;
 
-      rejectButton.disabled = false;
+      acceptButton.disabled =
+        false;
+
+      rejectButton.disabled =
+        false;
 
       status.innerText =
         "❌ Job was NOT rejected.\n\n" +
-        "Supabase did not update the booking.\n" +
-        "The worker UPDATE policy may not be matching.";
+        "Supabase did not update the booking.";
 
       return;
     }
 
 
-    currentBookingId = null;
+    currentBookingId =
+      null;
 
-    currentBooking = null;
+    currentBooking =
+      null;
 
-    workerBusy = false;
+    workerBusy =
+      false;
 
 
-    newJobAlert.style.display =
+    actionArea.style.display =
       "none";
 
     navigateButton.style.display =
       "none";
 
-    acceptButton.style.display =
+    newJobAlert.style.display =
       "none";
-
-    rejectButton.style.display =
-      "none";
-
 
     hideCustomerContact();
 
 
     waitingMessage.style.display =
       "block";
-
-
-    acceptButton.disabled = false;
-
-    rejectButton.disabled = false;
 
 
     status.innerText =
@@ -1724,9 +1790,14 @@ async function rejectJob() {
 
   catch(error) {
 
-    acceptButton.disabled = false;
+    workerBusy =
+      false;
 
-    rejectButton.disabled = false;
+    acceptButton.disabled =
+      false;
+
+    rejectButton.disabled =
+      false;
 
     status.innerText =
       "❌ Reject error:\n" +
@@ -1738,7 +1809,7 @@ async function rejectJob() {
 
 
 /* =================================
-   NOTIFICATION PERMISSION
+   NOTIFICATIONS
    ================================= */
 
 async function requestNotificationPermission() {
@@ -1754,14 +1825,7 @@ async function requestNotificationPermission() {
 
     }
 
-    catch(error) {
-
-      console.log(
-        "Notification permission error:",
-        error
-      );
-
-    }
+    catch(error) {}
 
   }
 
@@ -1769,13 +1833,14 @@ async function requestNotificationPermission() {
 
 
 /* =================================
-   AUTH STATE LISTENER
+   AUTH STATE
    ================================= */
 
 supabaseClient.auth.onAuthStateChange(
   function(event, session) {
 
-    currentSession = session;
+    currentSession =
+      session;
 
     currentUser =
       session
@@ -1849,18 +1914,13 @@ async function startWorkerApp() {
 }
 
 
-/* =================================
-   START APP
-   ================================= */
-
 requestNotificationPermission();
 
 startWorkerApp();
 
 
 /* =================================
-   CHECK FOR NEW BOOKINGS
-   EVERY 5 SECONDS
+   POLLING
    ================================= */
 
 setInterval(
