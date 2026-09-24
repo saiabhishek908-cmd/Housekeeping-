@@ -84,6 +84,16 @@ button {
   font-weight: bold;
   white-space: pre-line;
 }
+
+#errorResult {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  background: #fdecec;
+  border-radius: 10px;
+  font-weight: bold;
+  white-space: pre-line;
+}
 </style>
 </head>
 
@@ -234,6 +244,8 @@ Book a Housekeeper
 
 <div id="result"></div>
 
+<div id="errorResult"></div>
+
 
 <!-- ================================
      MY BOOKING
@@ -291,6 +303,9 @@ document.getElementById("bookButton");
 
 var result =
 document.getElementById("result");
+
+var errorResult =
+document.getElementById("errorResult");
 
 var myBooking =
 document.getElementById("myBooking");
@@ -449,7 +464,7 @@ function displayBooking(booking) {
   bookingDetails.innerText =
 
     "Booking ID: " +
-    (booking.bookingCode || booking.id) +
+    (booking.bookingCode || booking.id || "Pending") +
     "\n" +
 
     "Customer: " +
@@ -461,27 +476,103 @@ function displayBooking(booking) {
     "\n" +
 
     "Location: " +
-    booking.location +
+    (booking.location || "Not provided") +
     "\n" +
 
     "Service: " +
-    booking.service +
+    (booking.service || "Not provided") +
     "\n" +
 
     "Duration: " +
-    booking.hours +
+    (booking.hours || "Not provided") +
     " hour(s)\n" +
 
     "Housekeepers: " +
-    booking.workers +
+    (booking.workers || "Not provided") +
     "\n" +
 
     "Price: " +
-    booking.price +
+    (booking.price || "Not provided") +
     "\n" +
 
     "Status: " +
-    booking.status;
+    (booking.status || "pending");
+
+}
+
+
+/* ================================
+   GET BOOKING USING SECURE RPC
+   ================================ */
+
+async function getBookingByToken(
+  customerToken
+) {
+
+  var response =
+    await fetch(
+
+      SUPABASE_URL +
+      "/rest/v1/rpc/get_booking_by_customer_token",
+
+      {
+
+        method: "POST",
+
+        headers: {
+
+          "apikey":
+          SUPABASE_KEY,
+
+          "Authorization":
+          "Bearer " +
+          SUPABASE_KEY,
+
+          "Content-Type":
+          "application/json"
+
+        },
+
+        body:
+        JSON.stringify({
+
+          p_customer_token:
+          customerToken
+
+        })
+
+      }
+
+    );
+
+
+  if (!response.ok) {
+
+    var errorText =
+      await response.text();
+
+    throw new Error(
+      errorText
+    );
+
+  }
+
+
+  var data =
+    await response.json();
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    return null;
+
+  }
+
+
+  return data[0];
 
 }
 
@@ -494,8 +585,20 @@ bookButton.addEventListener(
   "click",
   async function() {
 
+    /* ================================
+       CREATE BOOKING CODE
+       ================================ */
+
     var bookingCode =
       "HK" + Date.now();
+
+
+    /* ================================
+       CREATE PRIVATE CUSTOMER TOKEN
+       ================================ */
+
+    var customerToken =
+      crypto.randomUUID();
 
 
     /* ================================
@@ -514,6 +617,9 @@ bookButton.addEventListener(
       result.style.display =
         "block";
 
+      errorResult.style.display =
+        "none";
+
       result.innerText =
         "Please enter your name.";
 
@@ -528,10 +634,35 @@ bookButton.addEventListener(
       result.style.display =
         "block";
 
+      errorResult.style.display =
+        "none";
+
       result.innerText =
         "Please enter your phone number.";
 
       customerPhone.focus();
+
+      return;
+    }
+
+
+    /* ================================
+       CHECK LOCATION
+       ================================ */
+
+    if (
+      latitude === null ||
+      longitude === null
+    ) {
+
+      result.style.display =
+        "block";
+
+      errorResult.style.display =
+        "none";
+
+      result.innerText =
+        "Please use your current location before booking.";
 
       return;
     }
@@ -548,6 +679,9 @@ bookButton.addEventListener(
 
       customer_phone:
       phone,
+
+      customer_token:
+      customerToken,
 
       location:
       locationInput.value,
@@ -574,34 +708,41 @@ bookButton.addEventListener(
 
       status:
       "pending"
+
     };
 
 
     /* ================================
-       CHECK LOCATION
+       BUTTON STATE
        ================================ */
 
-    if (
-      latitude === null ||
-      longitude === null
-    ) {
+    bookButton.disabled =
+      true;
 
-      result.style.display =
-        "block";
-
-      result.innerText =
-        "Please use your current location before booking.";
-
-      return;
-    }
+    bookButton.innerText =
+      "Creating booking...";
 
 
     try {
 
+      /* ================================
+         INSERT BOOKING
+
+         IMPORTANT:
+         return=minimal means Supabase
+         does NOT return the inserted row.
+
+         This allows anonymous INSERT
+         without giving anonymous SELECT
+         access to the bookings table.
+         ================================ */
+
       var response =
         await fetch(
+
           SUPABASE_URL +
           "/rest/v1/bookings",
+
           {
 
             method: "POST",
@@ -619,62 +760,106 @@ bookButton.addEventListener(
               "application/json",
 
               "Prefer":
-              "return=representation"
+              "return=minimal"
+
             },
 
             body:
-            JSON.stringify(booking)
+            JSON.stringify(
+              booking
+            )
+
           }
+
         );
 
+
+      /* ================================
+         HANDLE INSERT ERROR
+         ================================ */
 
       if (!response.ok) {
 
         var errorText =
           await response.text();
 
-        result.style.display =
+        errorResult.style.display =
           "block";
 
-        result.innerText =
+        result.style.display =
+          "none";
+
+        errorResult.innerText =
           "Booking failed:\n" +
           errorText;
 
         return;
+
       }
 
 
-      var savedRows =
-        await response.json();
+      /* ================================
+         INSERT SUCCESSFUL
+
+         Now retrieve ONLY this booking
+         through the secure RPC using
+         the private customer token.
+         ================================ */
+
+      var savedBooking =
+        await getBookingByToken(
+          customerToken
+        );
 
 
-      if (
-        !savedRows ||
-        savedRows.length === 0
-      ) {
+      if (!savedBooking) {
 
-        result.style.display =
+        errorResult.style.display =
           "block";
 
-        result.innerText =
-          "Booking created, but ID could not be retrieved.";
+        result.style.display =
+          "none";
+
+        errorResult.innerText =
+          "Booking was created, but the booking details could not be retrieved.";
 
         return;
+
       }
 
 
+      /* ================================
+         STORE DATABASE VALUES
+         ================================ */
+
       booking.id =
-        savedRows[0].id;
+        savedBooking.id;
 
       booking.bookingCode =
         bookingCode;
 
 
+      /* ================================
+         SAVE CUSTOMER BOOKING LOCALLY
+         ================================ */
+
       localStorage.setItem(
+
         "housekeepBooking",
-        JSON.stringify(booking)
+
+        JSON.stringify(
+          booking
+        )
+
       );
 
+
+      /* ================================
+         SUCCESS MESSAGE
+         ================================ */
+
+      errorResult.style.display =
+        "none";
 
       result.style.display =
         "block";
@@ -707,21 +892,40 @@ bookButton.addEventListener(
         booking.price;
 
 
+      /* ================================
+         DISPLAY BOOKING
+         ================================ */
+
       displayBooking(
         booking
       );
+
 
     }
 
 
     catch(error) {
 
-      result.style.display =
+      errorResult.style.display =
         "block";
 
-      result.innerText =
+      result.style.display =
+        "none";
+
+      errorResult.innerText =
         "Connection error:\n" +
         error.message;
+
+    }
+
+
+    finally {
+
+      bookButton.disabled =
+        false;
+
+      bookButton.innerText =
+        "Book a Housekeeper";
 
     }
 
@@ -750,89 +954,85 @@ async function checkBookingStatus() {
     JSON.parse(saved);
 
 
-  if (!booking.id) {
+  if (
+    !booking.customer_token
+  ) {
+
     return;
+
   }
 
 
   try {
 
-    var response =
-      await fetch(
+    /* ================================
+       SECURE RPC ONLY
 
-        SUPABASE_URL +
-        "/rest/v1/bookings?id=eq." +
-        booking.id +
-        "&select=*",
+       We DO NOT directly query:
 
-        {
+       /rest/v1/bookings?id=...
 
-          headers: {
+       because anonymous SELECT is
+       intentionally disabled.
+       ================================ */
 
-            "apikey":
-            SUPABASE_KEY,
-
-            "Authorization":
-            "Bearer " +
-            SUPABASE_KEY
-
-          }
-
-        }
-
+    var latest =
+      await getBookingByToken(
+        booking.customer_token
       );
 
 
-    if (!response.ok) {
+    if (!latest) {
       return;
     }
 
 
-    var bookings =
-      await response.json();
+    /* ================================
+       UPDATE LOCAL BOOKING
+       ================================ */
 
-
-    if (
-      bookings.length === 0
-    ) {
-      return;
-    }
-
+    booking.id =
+      latest.id;
 
     booking.status =
-      bookings[0].status;
+      latest.status;
 
     booking.location =
-      bookings[0].location;
+      latest.location;
 
     booking.latitude =
-      bookings[0].latitude;
+      latest.latitude;
 
     booking.longitude =
-      bookings[0].longitude;
+      latest.longitude;
 
     booking.service =
-      bookings[0].service;
+      latest.service;
 
     booking.hours =
-      bookings[0].hours;
+      latest.hours;
 
     booking.workers =
-      bookings[0].workers;
+      latest.workers;
 
     booking.price =
-      bookings[0].price;
+      latest.price;
 
     booking.customer_name =
-      bookings[0].customer_name;
+      latest.customer_name;
 
     booking.customer_phone =
-      bookings[0].customer_phone;
+      latest.customer_phone;
 
 
     localStorage.setItem(
+
       "housekeepBooking",
-      JSON.stringify(booking)
+
+      JSON.stringify(
+        booking
+      )
+
     );
 
 
