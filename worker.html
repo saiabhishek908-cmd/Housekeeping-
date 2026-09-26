@@ -1,249 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>HouseKeep — Worker</title>
+  <title>Housekeeping Worker</title>
 
-<style>
-*{
-  box-sizing:border-box;
-}
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f5f6f8;
-  color:#17191c;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
 
-.app{
-  max-width:480px;
-  margin:auto;
-  min-height:100vh;
-  background:white;
-  padding:22px 18px 32px;
-}
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
 
-h1{
-  margin:4px 0 5px;
-  font-size:30px;
-}
+    h1 {
+      text-align: center;
+    }
 
-.tag{
-  color:#666;
-  margin-bottom:22px;
-}
+    .card {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
 
-.card{
-  border:1px solid #e1e3e6;
-  border-radius:16px;
-  padding:18px;
-  margin:12px 0;
-  background:white;
-}
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
 
-label{
-  display:block;
-  font-size:12px;
-  font-weight:bold;
-  color:#666;
-  margin-bottom:7px;
-}
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-input{
-  width:100%;
-  padding:14px;
-  border:1px solid #d5d7db;
-  border-radius:10px;
-  font-size:16px;
-}
+    button:disabled {
+      opacity: 0.6;
+    }
 
-button{
-  width:100%;
-  border:0;
-  border-radius:12px;
-  padding:15px;
-  font-size:16px;
-  font-weight:bold;
-  background:#111;
-  color:white;
-  margin-top:10px;
-}
+    .job {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 12px;
+    }
 
-button.secondary{
-  background:#e9eaed;
-  color:#111;
-}
+    .hidden {
+      display: none;
+    }
 
-button.danger{
-  background:#b42318;
-  color:white;
-}
+    .status {
+      padding: 10px;
+      border-radius: 8px;
+      background: #f0f0f0;
+      margin-top: 10px;
+    }
 
-.small{
-  font-size:13px;
-  color:#777;
-  margin-top:7px;
-  line-height:1.45;
-}
+    .success {
+      background: #e8f7e8;
+    }
 
-.job-title{
-  font-size:20px;
-  font-weight:bold;
-  margin-bottom:14px;
-}
+    .error {
+      background: #ffe8e8;
+      color: #a00000;
+      white-space: pre-wrap;
+    }
 
-.job-row{
-  margin:9px 0;
-  line-height:1.45;
-}
+    .small {
+      font-size: 13px;
+      color: #666;
+    }
 
-.job-row strong{
-  display:inline-block;
-  min-width:90px;
-}
+    a.call-button {
+      display: block;
+      text-align: center;
+      background: #198754;
+      color: white;
+      text-decoration: none;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
 
-.status{
-  padding:12px;
-  border-radius:10px;
-  margin:12px 0;
-  background:#eef7ee;
-  color:#176b2c;
-  font-size:14px;
-}
-
-.error{
-  padding:12px;
-  border-radius:10px;
-  margin:12px 0;
-  background:#fff0f0;
-  color:#a40000;
-  font-size:14px;
-}
-
-.hidden{
-  display:none;
-}
-
-.contact{
-  background:#f1f7ff;
-  border:1px solid #cfe1f7;
-  border-radius:12px;
-  padding:15px;
-  margin-top:15px;
-}
-
-.contact-title{
-  font-weight:bold;
-  margin-bottom:8px;
-}
-
-.loading{
-  text-align:center;
-  padding:25px 10px;
-  color:#777;
-}
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:15px;
-}
-
-.topbar button{
-  width:auto;
-  padding:9px 13px;
-  margin:0;
-  font-size:13px;
-}
-
-.no-jobs{
-  text-align:center;
-  padding:30px 15px;
-  color:#777;
-  border:1px dashed #ccc;
-  border-radius:14px;
-}
-
-.login-box{
-  margin-top:35px;
-}
-</style>
+    a.map-button {
+      display: block;
+      text-align: center;
+      background: #0d6efd;
+      color: white;
+      text-decoration: none;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="app">
+<div class="container">
 
-  <!-- LOGIN SCREEN -->
+  <h1>Worker App</h1>
 
-  <div id="loginScreen">
+  <!-- LOGIN -->
+  <div id="loginSection" class="card">
 
-    <h1>HouseKeep</h1>
+    <h2>Worker Login</h2>
 
-    <div class="tag">
-      Worker Dashboard
-    </div>
+    <input
+      type="email"
+      id="email"
+      placeholder="Email"
+    >
 
-    <div class="card login-box">
+    <input
+      type="password"
+      id="password"
+      placeholder="Password"
+    >
 
-      <label>EMAIL</label>
-      <input
-        id="email"
-        type="email"
-        placeholder="Enter your email"
-      >
+    <button onclick="login()">
+      Login
+    </button>
 
-      <label style="margin-top:15px;">PASSWORD</label>
-      <input
-        id="password"
-        type="password"
-        placeholder="Enter your password"
-      >
-
-      <button onclick="login()">
-        Login
-      </button>
-
-      <div id="loginMessage"></div>
-
-    </div>
+    <div id="loginMessage" class="status"></div>
 
   </div>
 
 
-  <!-- WORKER DASHBOARD -->
+  <!-- WORKER APP -->
+  <div id="appSection" class="hidden">
 
-  <div id="dashboard" class="hidden">
+    <div class="card">
 
-    <div class="topbar">
+      <h2>Available Jobs</h2>
 
-      <div>
-        <h1>HouseKeep</h1>
-        <div class="small">
-          Available bookings
-        </div>
-      </div>
+      <div id="workerInfo" class="small"></div>
 
-      <button
-        class="secondary"
-        onclick="logout()"
-      >
+      <button onclick="loadBookings()">
+        Refresh Jobs
+      </button>
+
+      <button onclick="logout()">
         Logout
       </button>
 
     </div>
 
-    <div id="dashboardMessage"></div>
 
-    <div id="jobsContainer">
+    <div class="card">
 
-      <div class="loading">
-        Loading bookings...
+      <div id="jobs">
+        Loading jobs...
       </div>
+
+    </div>
+
+
+    <!-- SELECTED JOB -->
+    <div id="jobDetailsSection" class="card hidden">
+
+      <h2>Job Details</h2>
+
+      <div id="jobDetails"></div>
 
     </div>
 
@@ -252,784 +190,729 @@ button.danger{
 </div>
 
 
-<!-- SUPABASE -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 
-const SUPABASE_URL =
-"https://yrbhxouodsfsxryaduc9.supabase.co";
+  /* =========================
+     SUPABASE
+  ========================= */
 
-const SUPABASE_KEY =
-"sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
+  const SUPABASE_URL =
+    "https://yrbhxouodsfsxryaducn.supabase.co";
 
+  const SUPABASE_KEY =
+    "sb_publishable_TiNwYlPb2eHLfyhurkKLcg_0yKa6n4x";
 
-const supabaseClient =
-supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-
-let currentUser = null;
-let currentBookingId = null;
-let workerBusy = false;
-
-
-/* --------------------------------------------------
-   LOGIN
--------------------------------------------------- */
-
-async function login(){
-
-  const email =
-    document.getElementById("email").value.trim();
-
-  const password =
-    document.getElementById("password").value;
-
-  const message =
-    document.getElementById("loginMessage");
-
-
-  if(!email || !password){
-
-    message.innerHTML =
-      '<div class="error">Please enter your email and password.</div>';
-
-    return;
-  }
-
-
-  message.innerHTML =
-    '<div class="status">Logging in...</div>';
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
-
-
-  if(error){
-
-    console.error(error);
-
-    message.innerHTML =
-      '<div class="error">' +
-      error.message +
-      '</div>';
-
-    return;
-  }
-
-
-  currentUser = data.user;
-
-  showDashboard();
-
-}
-
-
-/* --------------------------------------------------
-   SHOW DASHBOARD
--------------------------------------------------- */
-
-function showDashboard(){
-
-  document
-    .getElementById("loginScreen")
-    .classList.add("hidden");
-
-  document
-    .getElementById("dashboard")
-    .classList.remove("hidden");
-
-  loadBookings();
-
-}
-
-
-/* --------------------------------------------------
-   LOAD AVAILABLE BOOKINGS
--------------------------------------------------- */
-
-async function loadBookings(){
-
-  if(!currentUser){
-    return;
-  }
-
-
-  const container =
-    document.getElementById("jobsContainer");
-
-
-  try{
-
-    const {
-      data,
-      error
-    } =
-    await supabaseClient.rpc(
-      "get_available_bookings_for_worker"
+  const supabaseClient =
+    supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
     );
 
 
-    if(error){
+  let currentUser = null;
+  let currentBooking = null;
+  let workerBusy = false;
 
-      console.error(
-        "Load bookings error:",
-        error
+
+  /* =========================
+     LOGIN
+  ========================= */
+
+  async function login() {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    const message =
+      document.getElementById("loginMessage");
+
+    message.className = "status";
+    message.textContent = "Logging in...";
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+
+      message.className = "status error";
+
+      message.textContent =
+        "Login failed:\n\n" +
+        "Message: " + error.message +
+        "\n\nCode: " + (error.code || "none");
+
+      return;
+    }
+
+    currentUser = data.user;
+
+    showWorkerApp();
+
+  }
+
+
+  /* =========================
+     SESSION CHECK
+  ========================= */
+
+  async function checkSession() {
+
+    const { data, error } =
+      await supabaseClient.auth.getSession();
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    if (data.session && data.session.user) {
+
+      currentUser =
+        data.session.user;
+
+      showWorkerApp();
+
+    } else {
+
+      showLogin();
+
+    }
+
+  }
+
+
+  /* =========================
+     SHOW LOGIN
+  ========================= */
+
+  function showLogin() {
+
+    document
+      .getElementById("loginSection")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("appSection")
+      .classList.add("hidden");
+
+  }
+
+
+  /* =========================
+     SHOW WORKER APP
+  ========================= */
+
+  function showWorkerApp() {
+
+    document
+      .getElementById("loginSection")
+      .classList.add("hidden");
+
+    document
+      .getElementById("appSection")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("workerInfo")
+      .textContent =
+        "Logged in worker: " +
+        currentUser.email;
+
+    loadBookings();
+
+  }
+
+
+  /* =========================
+     LOAD AVAILABLE BOOKINGS
+  ========================= */
+
+  async function loadBookings() {
+
+    const jobsDiv =
+      document.getElementById("jobs");
+
+    jobsDiv.innerHTML =
+      "Loading jobs...";
+
+
+    const { data, error } =
+      await supabaseClient.rpc(
+        "get_available_bookings_for_worker"
       );
 
-      container.innerHTML =
-        '<div class="error">' +
-        "Unable to load bookings. " +
-        error.message +
-        '</div>';
+
+    if (error) {
+
+      jobsDiv.innerHTML =
+        '<div class="status error">' +
+        "Could not load jobs.\n\n" +
+        "Message: " + error.message +
+        "\n\nCode: " + (error.code || "none") +
+        "\n\nDetails: " + (error.details || "none") +
+        "\n\nHint: " + (error.hint || "none") +
+        "</div>";
 
       return;
     }
 
 
-    const bookings = data || [];
+    if (!data || data.length === 0) {
 
-
-    if(bookings.length === 0){
-
-      container.innerHTML =
-        `
-        <div class="no-jobs">
-
-          <div style="font-size:18px;font-weight:bold;">
-            No available bookings
-          </div>
-
-          <div class="small">
-            New bookings will appear here automatically.
-          </div>
-
-        </div>
-        `;
+      jobsDiv.innerHTML =
+        '<div class="status">' +
+        "No available jobs right now." +
+        "</div>";
 
       return;
     }
 
 
-    container.innerHTML = "";
+    jobsDiv.innerHTML = "";
 
 
-    bookings.forEach(function(booking){
+    data.forEach(function(job) {
 
-      const card =
+      const div =
         document.createElement("div");
 
-      card.className = "card";
+      div.className = "job";
 
 
-      const workerText =
-        booking.workers === 1
-        ? "1 housekeeper"
-        : booking.workers + " housekeepers";
+      div.innerHTML = `
 
+        <strong>${escapeHtml(job.service || "Cleaning")}</strong>
 
-      card.innerHTML =
-        `
-        <div class="job-title">
-          ${escapeHtml(booking.service || "Housekeeping")}
-        </div>
+        <br><br>
 
-        <div class="job-row">
-          <strong>Location:</strong>
-          ${escapeHtml(booking.location || "Not provided")}
-        </div>
+        <strong>Location:</strong>
+        ${escapeHtml(job.location || "Not provided")}
 
-        <div class="job-row">
-          <strong>Duration:</strong>
-          ${escapeHtml(String(booking.hours || ""))} hour(s)
-        </div>
+        <br>
 
-        <div class="job-row">
-          <strong>Workers:</strong>
-          ${escapeHtml(workerText)}
-        </div>
+        <strong>Duration:</strong>
+        ${job.hours || 0} hour(s)
 
-        <div class="job-row">
-          <strong>Price:</strong>
-          ₹${escapeHtml(String(booking.price || "0"))}
-        </div>
+        <br>
 
-        <div class="job-row">
-          <strong>Status:</strong>
-          ${escapeHtml(booking.status || "pending")}
-        </div>
+        <strong>Workers required:</strong>
+        ${job.workers || 0}
 
-        <button
-          onclick="openJob(${booking.id})"
-        >
-          View Booking
+        <br>
+
+        <strong>Price:</strong>
+        ₹${escapeHtml(String(job.price || 0))}
+
+        <br>
+
+        <strong>Status:</strong>
+        ${escapeHtml(job.status || "")}
+
+        <br><br>
+
+        <button onclick="openJob(${job.id})">
+          View Job
         </button>
-        `;
 
+      `;
 
-      container.appendChild(card);
+      jobsDiv.appendChild(div);
 
     });
 
-
-  }catch(error){
-
-    console.error(error);
-
-    container.innerHTML =
-      '<div class="error">Something went wrong while loading bookings.</div>';
-
   }
 
-}
 
+  /* =========================
+     OPEN JOB
+  ========================= */
 
-/* --------------------------------------------------
-   OPEN BOOKING
--------------------------------------------------- */
+  async function openJob(bookingId) {
 
-async function openJob(bookingId){
-
-  currentBookingId = bookingId;
-
-  const container =
-    document.getElementById("jobsContainer");
-
-
-  container.innerHTML =
-    '<div class="loading">Loading booking...</div>';
-
-
-  try{
-
-    const {
-      data,
-      error
-    } =
-    await supabaseClient.rpc(
-      "get_available_bookings_for_worker"
-    );
-
-
-    if(error){
-      throw error;
-    }
-
-
-    const booking =
-      (data || []).find(
-        item => Number(item.id) === Number(bookingId)
+    const { data, error } =
+      await supabaseClient.rpc(
+        "get_available_bookings_for_worker"
       );
 
 
-    if(!booking){
+    if (error) {
 
-      container.innerHTML =
-        `
-        <div class="error">
-          This booking is no longer available.
-        </div>
-
-        <button
-          class="secondary"
-          onclick="loadBookings()"
-        >
-          Back
-        </button>
-        `;
+      showJobError(error);
 
       return;
     }
 
 
-    const workerText =
-      booking.workers === 1
-      ? "1 housekeeper"
-      : booking.workers + " housekeepers";
+    const job =
+      data.find(
+        function(item) {
+          return String(item.id) === String(bookingId);
+        }
+      );
 
 
-    container.innerHTML =
-      `
-      <div class="card">
+    if (!job) {
 
-        <div class="job-title">
-          ${escapeHtml(booking.service || "Housekeeping")}
-        </div>
+      document
+        .getElementById("jobDetailsSection")
+        .classList.remove("hidden");
 
-        <div class="job-row">
-          <strong>Location:</strong>
-          ${escapeHtml(booking.location || "Not provided")}
-        </div>
+      document
+        .getElementById("jobDetails")
+        .innerHTML =
+        '<div class="status error">' +
+        "This booking is no longer available." +
+        "</div>";
 
-        <div class="job-row">
-          <strong>Duration:</strong>
-          ${escapeHtml(String(booking.hours || ""))} hour(s)
-        </div>
+      return;
+    }
 
-        <div class="job-row">
-          <strong>Workers:</strong>
-          ${escapeHtml(workerText)}
-        </div>
 
-        <div class="job-row">
-          <strong>Price:</strong>
-          ₹${escapeHtml(String(booking.price || "0"))}
-        </div>
+    currentBooking = job;
 
-        <div class="job-row">
-          <strong>Status:</strong>
-          ${escapeHtml(booking.status || "pending")}
-        </div>
+
+    document
+      .getElementById("jobDetailsSection")
+      .classList.remove("hidden");
+
+
+    document
+      .getElementById("jobDetails")
+      .innerHTML = `
+
+        <strong>Service:</strong>
+        ${escapeHtml(job.service || "")}
+
+        <br><br>
+
+        <strong>Location:</strong>
+        ${escapeHtml(job.location || "")}
+
+        <br><br>
+
+        <strong>Duration:</strong>
+        ${job.hours || 0} hour(s)
+
+        <br><br>
+
+        <strong>Housekeepers requested:</strong>
+        ${job.workers || 0}
+
+        <br><br>
+
+        <strong>Price:</strong>
+        ₹${escapeHtml(String(job.price || 0))}
+
+        <br><br>
+
+        <strong>Status:</strong>
+        ${escapeHtml(job.status || "")}
+
+        <br><br>
 
         ${
-          booking.latitude !== null &&
-          booking.longitude !== null
+          job.latitude && job.longitude
           ?
-          `
-          <button
-            class="secondary"
-            onclick="openNavigation(
-              ${Number(booking.latitude)},
-              ${Number(booking.longitude)}
-            )"
-          >
+          `<a
+            class="map-button"
+            target="_blank"
+            href="https://www.google.com/maps/dir/?api=1&destination=${job.latitude},${job.longitude}">
             Open Navigation
-          </button>
-          `
+          </a>`
           :
           ""
         }
 
         <button
-          onclick="acceptJob(${booking.id})"
           id="acceptButton"
-        >
-          Accept Booking
+          onclick="acceptJob()">
+          Accept Job
         </button>
 
-        <button
-          class="secondary"
-          onclick="loadBookings()"
-        >
-          Back
-        </button>
+        <div id="acceptMessage"></div>
 
-        <div id="jobMessage"></div>
-
-        <div id="contactBox"></div>
-
-      </div>
-      `;
-
-
-  }catch(error){
-
-    console.error(error);
-
-    container.innerHTML =
-      `
-      <div class="error">
-        Unable to load booking.
-      </div>
-
-      <button
-        class="secondary"
-        onclick="loadBookings()"
-      >
-        Back
-      </button>
       `;
 
   }
 
-}
+
+  /* =========================
+     ACCEPT JOB
+  ========================= */
+
+  async function acceptJob() {
+
+    if (!currentBooking) {
+
+      alert("No booking selected.");
+
+      return;
+    }
 
 
-/* --------------------------------------------------
-   ACCEPT BOOKING
--------------------------------------------------- */
+    if (workerBusy) {
 
-async function acceptJob(bookingId){
-
-  if(workerBusy){
-    return;
-  }
+      return;
+    }
 
 
-  workerBusy = true;
+    workerBusy = true;
 
 
-  const button =
-    document.getElementById("acceptButton");
+    const button =
+      document.getElementById("acceptButton");
 
-  const message =
-    document.getElementById("jobMessage");
-
-
-  if(button){
-
-    button.disabled = true;
-
-    button.textContent =
-      "Accepting...";
-
-  }
+    const message =
+      document.getElementById("acceptMessage");
 
 
-  try{
+    if (button) {
 
-    const {
-      data,
-      error
-    } =
-    await supabaseClient.rpc(
-      "accept_booking_as_worker",
-      {
-        p_booking_id: bookingId
-      }
+      button.disabled = true;
+      button.textContent = "Accepting...";
+
+    }
+
+
+    message.className = "status";
+    message.textContent =
+      "Sending acceptance to Supabase...";
+
+
+    console.log(
+      "Attempting acceptance:",
+      currentBooking.id
     );
 
 
-    if(error){
+    /*
+      IMPORTANT:
 
-      throw error;
+      We are NOT directly updating bookings.
 
+      The SECURITY DEFINER function handles:
+      - authenticated worker check
+      - duplicate worker check
+      - worker limit
+      - booking lock
+      - booking_workers insert
+      - booking status update
+    */
+
+    const { data, error } =
+      await supabaseClient.rpc(
+        "accept_booking_as_worker",
+        {
+          p_booking_id:
+            currentBooking.id
+        }
+      );
+
+
+    console.log(
+      "Accept RPC data:",
+      data
+    );
+
+    console.log(
+      "Accept RPC error:",
+      error
+    );
+
+
+    if (error) {
+
+      /*
+        SHOW THE REAL SUPABASE ERROR.
+        This is what we need if something
+        is still wrong.
+      */
+
+      message.className =
+        "status error";
+
+      message.textContent =
+        "ACCEPT FAILED\n\n" +
+        "Message: " +
+        (error.message || "none") +
+        "\n\n" +
+        "Code: " +
+        (error.code || "none") +
+        "\n\n" +
+        "Details: " +
+        (error.details || "none") +
+        "\n\n" +
+        "Hint: " +
+        (error.hint || "none");
+
+
+      if (button) {
+
+        button.disabled = false;
+        button.textContent = "Try Again";
+
+      }
+
+
+      workerBusy = false;
+
+      return;
+    }
+
+
+    if (!data || data.length === 0) {
+
+      message.className =
+        "status error";
+
+      message.textContent =
+        "Supabase accepted the request but returned no result.";
+
+      if (button) {
+
+        button.disabled = false;
+        button.textContent = "Try Again";
+
+      }
+
+      workerBusy = false;
+
+      return;
     }
 
 
     const result =
-      data && data.length
+      Array.isArray(data)
       ? data[0]
-      : null;
+      : data;
 
 
-    if(!result){
+    const requested =
+      result.workers_requested;
 
-      throw new Error(
-        "The server did not return the booking status."
-      );
+    const accepted =
+      result.workers_accepted;
 
-    }
+    const status =
+      result.booking_status;
 
 
-    message.innerHTML =
-      `
-      <div class="status">
+    message.className =
+      "status success";
 
-        Booking accepted.
-
-        <br><br>
-
-        Workers assigned:
-        <strong>
-          ${result.workers_accepted}
-          /
-          ${result.workers_requested}
-        </strong>
-
-        <br>
-
-        Status:
-        <strong>
-          ${escapeHtml(result.booking_status)}
-        </strong>
-
-      </div>
-      `;
+    message.textContent =
+      "Booking accepted successfully.\n\n" +
+      "Workers assigned: " +
+      accepted +
+      " / " +
+      requested +
+      "\n\n" +
+      "Status: " +
+      status;
 
 
     /*
-      Now that THIS worker has accepted,
-      request customer contact through the
-      secure worker-only RPC.
+      Now retrieve this worker's customer
+      contact through the secure RPC.
     */
 
-    await loadCustomerContact(bookingId);
-
-
-    if(button){
-
-      button.textContent =
-        "Booking Accepted";
-
-      button.disabled = true;
-
-    }
-
-
-  }catch(error){
-
-    console.error(
-      "Accept booking error:",
-      error
+    await loadCustomerContact(
+      currentBooking.id
     );
 
 
-    message.innerHTML =
-      `
-      <div class="error">
-        ${escapeHtml(error.message || "Unable to accept booking.")}
-      </div>
-      `;
+    /*
+      Refresh the available job list.
+      The accepted worker should no longer
+      see this booking.
+    */
 
-
-    if(button){
-
-      button.disabled = false;
-
-      button.textContent =
-        "Accept Booking";
-
-    }
-
-  }finally{
+    await loadBookings();
 
     workerBusy = false;
 
   }
 
-}
+
+  /* =========================
+     CUSTOMER CONTACT
+  ========================= */
+
+  async function loadCustomerContact(
+    bookingId
+  ) {
+
+    const { data, error } =
+      await supabaseClient.rpc(
+        "get_customer_contact_for_worker",
+        {
+          p_booking_id:
+            bookingId
+        }
+      );
 
 
-/* --------------------------------------------------
-   CUSTOMER CONTACT
--------------------------------------------------- */
+    console.log(
+      "Customer contact:",
+      data
+    );
 
-async function loadCustomerContact(bookingId){
-
-  const contactBox =
-    document.getElementById("contactBox");
-
-
-  if(!contactBox){
-    return;
-  }
-
-
-  const {
-    data,
-    error
-  } =
-  await supabaseClient.rpc(
-    "get_customer_contact_for_worker",
-    {
-      p_booking_id: bookingId
-    }
-  );
-
-
-  if(error){
-
-    console.error(
-      "Contact error:",
+    console.log(
+      "Customer contact error:",
       error
     );
 
-    contactBox.innerHTML =
-      `
-      <div class="error">
-        Booking accepted, but customer contact
-        could not be loaded yet.
-      </div>
-      `;
 
-    return;
-  }
+    if (error) {
 
+      const message =
+        document.getElementById(
+          "acceptMessage"
+        );
 
-  if(!data || data.length === 0){
+      message.className =
+        "status error";
 
-    contactBox.innerHTML =
-      `
-      <div class="error">
-        Customer contact is not available.
-      </div>
-      `;
+      message.textContent +=
+        "\n\nCustomer contact could not be loaded.\n" +
+        error.message;
 
-    return;
-  }
-
-
-  const customer =
-    data[0];
-
-
-  contactBox.innerHTML =
-    `
-    <div class="contact">
-
-      <div class="contact-title">
-        Customer Contact
-      </div>
-
-      <div class="job-row">
-        <strong>Name:</strong>
-        ${escapeHtml(customer.customer_name || "Customer")}
-      </div>
-
-      <div class="job-row">
-        <strong>Phone:</strong>
-        ${escapeHtml(customer.customer_phone || "Not provided")}
-      </div>
-
-      ${
-        customer.customer_phone
-        ?
-        `
-        <button
-          onclick="callCustomer('${encodeURIComponent(customer.customer_phone)}')"
-        >
-          Call Customer
-        </button>
-        `
-        :
-        ""
-      }
-
-    </div>
-    `;
-
-}
-
-
-/* --------------------------------------------------
-   CALL CUSTOMER
--------------------------------------------------- */
-
-function callCustomer(phone){
-
-  const decoded =
-    decodeURIComponent(phone);
-
-  window.location.href =
-    "tel:" + decoded;
-
-}
-
-
-/* --------------------------------------------------
-   NAVIGATION
--------------------------------------------------- */
-
-function openNavigation(latitude, longitude){
-
-  window.open(
-    "https://www.google.com/maps/dir/?api=1&destination=" +
-    latitude +
-    "," +
-    longitude,
-    "_blank"
-  );
-
-}
-
-
-/* --------------------------------------------------
-   LOGOUT
--------------------------------------------------- */
-
-async function logout(){
-
-  await supabaseClient.auth.signOut();
-
-  currentUser = null;
-
-  document
-    .getElementById("dashboard")
-    .classList.add("hidden");
-
-  document
-    .getElementById("loginScreen")
-    .classList.remove("hidden");
-
-  document
-    .getElementById("password")
-    .value = "";
-
-}
-
-
-/* --------------------------------------------------
-   CHECK EXISTING SESSION
--------------------------------------------------- */
-
-async function checkSession(){
-
-  const {
-    data
-  } =
-  await supabaseClient.auth.getSession();
-
-
-  if(
-    data &&
-    data.session &&
-    data.session.user
-  ){
-
-    currentUser =
-      data.session.user;
-
-    showDashboard();
-
-  }
-
-}
-
-
-/* --------------------------------------------------
-   AUTO REFRESH
--------------------------------------------------- */
-
-setInterval(
-  function(){
-
-    if(
-      currentUser &&
-      !currentBookingId
-    ){
-
-      loadBookings();
-
+      return;
     }
 
-  },
-  5000
-);
+
+    if (!data || data.length === 0) {
+
+      return;
+    }
 
 
-/* --------------------------------------------------
-   ESCAPE HTML
--------------------------------------------------- */
-
-function escapeHtml(value){
-
-  return String(value)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-
-}
+    const contact =
+      Array.isArray(data)
+      ? data[0]
+      : data;
 
 
-/* --------------------------------------------------
-   START
--------------------------------------------------- */
+    const details =
+      document.getElementById(
+        "jobDetails"
+      );
 
-checkSession();
+
+    details.innerHTML += `
+
+      <hr>
+
+      <h3>Customer Contact</h3>
+
+      <strong>Name:</strong>
+      ${escapeHtml(contact.customer_name || "")}
+
+      <br><br>
+
+      <strong>Phone:</strong>
+      ${escapeHtml(contact.customer_phone || "")}
+
+      <a
+        class="call-button"
+        href="tel:${escapeHtml(contact.customer_phone || "")}">
+        Call Customer
+      </a>
+
+    `;
+
+  }
+
+
+  /* =========================
+     ERROR DISPLAY
+  ========================= */
+
+  function showJobError(error) {
+
+    document
+      .getElementById("jobDetailsSection")
+      .classList.remove("hidden");
+
+    document
+      .getElementById("jobDetails")
+      .innerHTML =
+      '<div class="status error">' +
+      "ERROR\n\n" +
+      "Message: " +
+      (error.message || "none") +
+      "\n\nCode: " +
+      (error.code || "none") +
+      "\n\nDetails: " +
+      (error.details || "none") +
+      "\n\nHint: " +
+      (error.hint || "none") +
+      "</div>";
+
+  }
+
+
+  /* =========================
+     LOGOUT
+  ========================= */
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    currentUser = null;
+    currentBooking = null;
+
+    showLogin();
+
+  }
+
+
+  /* =========================
+     HTML ESCAPE
+  ========================= */
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  /* =========================
+     AUTO SESSION
+  ========================= */
+
+  checkSession();
+
+
+  /* =========================
+     AUTO REFRESH
+  ========================= */
+
+  setInterval(
+    function() {
+
+      if (currentUser) {
+
+        loadBookings();
+
+      }
+
+    },
+    5000
+  );
 
 </script>
 
